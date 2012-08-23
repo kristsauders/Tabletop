@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>TableTop Beta</title>
+</head>
+<body style="background-color:gray;">
+<table width="100%" height="100%">
+  <tr>
+    <td align="center" valign="middle">
+    <br/><br/><br/><br/><br/><br/>
+<div name="users" id="users" style="position:fixed;visibility:visible;left:20%;top:20%;width:60%;z-index:10000;font-family:Arial;font-size:18px;" align="center">
+<b>View public user galleries:</b><br/><br/>
+<table>
+<%
+for(var i=0; i<data.length; i++) {
+      %><tr><td><a href="/<%=data[i]%>/galleries/list"><%=data[i]%></a> &nbsp; &nbsp; &nbsp; </td></tr>
+      <%
+}
+%></table>
+<hr></hr><br/>
+<form name="login" action="/users/list/login" method="post">
+<b>Log in:</b><br/>
+Username: <input type="text" name="user" /><br/>
+Password: <input type="password" name="password" /><br/>
+<input type="submit" value="Submit"/>
+</form>
+<hr></hr><br/>
+<form name="users" action="/users/list/new" method="post">
+<b>Sign up:</b><br/>
+Username: <input type="text" name="user" /><br/>
+Password: <input type="password" name="password" /><br/>
+<input type="submit" value="Submit"/>
+</form></div>
+
+	</td>
+  </tr>
+</table>
+</body>
+</html>

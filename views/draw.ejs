@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>TableTop Beta</title>
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script language="JavaScript" type="text/javascript">
+ function success() 
+  {
+     opener.location.reload(true);
+     self.close();
+  }
+</script>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+		<style type="text/css">
+			*
+			{
+				color: #444;
+				font-family: Monospace;
+				font-size: 12px;
+			}
+			
+			body
+			{
+				margin: 0px;
+				overflow: scroll;
+			}
+			
+			select
+			{
+				text-transform: uppercase;
+				font-size: 11px;
+				text-align: center;
+			}
+			
+			hr
+			{
+				border: 0;
+				height: 1px;
+				background-color: #ccc;
+				margin: 20px 0px;
+			}
+			
+			.gui
+			{
+				color: black;
+				width: 350px;
+				background-color: gray;
+				//border-bottom: 1px solid #ddd;
+				//padding: 5px 10px;
+				text-align: center;
+				//text-transform: uppercase;
+				line-height: 18px;
+				cursor: default;
+                opacity:0.95;
+                z-index:13000;
+                    -moz-box-shadow: 1px 1px 25px #999;
+                	-webkit-box-shadow: 1px 1px 25px #999;
+                    box-shadow: 1px 1px 25px #999;
+			}
+			
+			.button
+			{
+				padding: 2px;
+				cursor: pointer;
+			}
+			
+			.key
+			{
+				padding: 0px 8px;
+				margin-left: 1px;
+				background-color: #eee;
+			}
+		</style>
+</head>
+
+<body  bgcolor="#000000" oncontextmenu="return false;" >
+		<script type="text/javascript" src="/js/brushes/circles.js"></script>
+		<script type="text/javascript" src="/js/brushes/chrome.js"></script>
+		<script type="text/javascript" src="/js/brushes/fur.js"></script>
+		<script type="text/javascript" src="/js/brushes/grid.js"></script>
+		<script type="text/javascript" src="/js/brushes/longfur.js"></script>
+		<script type="text/javascript" src="/js/brushes/ribbon.js"></script>
+		<script type="text/javascript" src="/js/brushes/shaded.js"></script>
+		<script type="text/javascript" src="/js/brushes/simple.js"></script>
+		<script type="text/javascript" src="/js/brushes/sketchy.js"></script>
+		<script type="text/javascript" src="/js/brushes/squares.js"></script>
+		<script type="text/javascript" src="/js/brushes/web.js"></script>
+		<script type="text/javascript" src="/js/colorutils.js"></script>
+		<script type="text/javascript" src="/js/colorselector.js"></script>
+		<script type="text/javascript" src="/js/palette.js"></script>
+		<script type="text/javascript" src="/js/menu2.js"></script>
+		<script type="text/javascript" src="/js/main2.js"></script>
+		<script type="text/javascript">
+		context.clearRect(0,0,canvas.width,canvas.height);
+		</script>
+</body>
+</html>

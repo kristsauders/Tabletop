@@ -1,0 +1,609 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Krists Auders Photography (Beta)</title>
+<script type="text/javascript" >
+</script>
+<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+		<style type="text/css">
+			*
+			{
+				color: #444;
+				font-family: Monospace;
+				font-size: 12px;
+			}
+			
+			body
+			{
+				margin: 0px;
+				overflow: scroll;
+			}
+			
+			select
+			{
+				text-transform: uppercase;
+				font-size: 11px;
+				text-align: center;
+			}
+			
+			hr
+			{
+				border: 0;
+				height: 1px;
+				background-color: #ccc;
+				margin: 20px 0px;
+			}
+			
+			.gui
+			{
+				color: black;
+				width: 350px;
+				background-color: gray;
+				//border-bottom: 1px solid #ddd;
+				//padding: 5px 10px;
+				text-align: center;
+				//text-transform: uppercase;
+				line-height: 18px;
+				cursor: default;
+                opacity:0.95;
+                z-index:13000;
+                    -moz-box-shadow: 1px 1px 25px #999;
+                	-webkit-box-shadow: 1px 1px 25px #999;
+                    box-shadow: 1px 1px 25px #999;
+			}
+			
+			.button
+			{
+				padding: 2px;
+				cursor: pointer;
+			}
+			
+			.key
+			{
+				padding: 0px 8px;
+				margin-left: 1px;
+				background-color: #eee;
+			}
+            img {
+                opacity: 1;
+            }
+            img:hover {
+                opacity: 1;
+                /*Reflection*/ 
+                /*-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.4)));   */
+                /*Glow*/ 
+                -webkit-box-shadow: 0px 0px 5px rgba(255,255,255,0.8); -moz-box-shadow: 0px 0px 5px rgba(255,255,255,0.8); box-shadow: 0px 0px 5px rgba(255,255,255,0.8); 
+            }
+            .no-hover {
+                opacity: 1;  
+                -webkit-box-shadow: 0px 0px 0px; -moz-box-shadow: 0px 0px 0px; box-shadow: 0px 0px 0px;
+            }
+            .no-hover:hover {
+                opacity: 1;  
+                -webkit-box-shadow: 0px 0px 0px; -moz-box-shadow: 0px 0px 0px; box-shadow: 0px 0px 0px;
+            }
+		</style>
+<script type="text/javascript" >
+var ddpp=null;
+function getScrollXY() {
+	  var scrOfX = 0, scrOfY = 0;
+	  if( typeof( window.pageYOffset ) == 'number' ) {
+	    //Netscape compliant
+	    scrOfY = window.pageYOffset;
+	    scrOfX = window.pageXOffset;
+	  } else if( document.body && ( document.body.scrollLeft || document.body.scrollTop ) ) {
+	    //DOM compliant
+	    scrOfY = document.body.scrollTop;
+	    scrOfX = document.body.scrollLeft;
+	  } else if( document.documentElement && ( document.documentElement.scrollLeft || document.documentElement.scrollTop ) ) {
+	    //IE6 standards compliant mode
+	    scrOfY = document.documentElement.scrollTop;
+	    scrOfX = document.documentElement.scrollLeft;
+	  }
+	  return [ scrOfX, scrOfY ];
+	}
+function get_cookie(Name) {
+	  var search = Name + "="
+	  var returnvalue = "";
+	  if (document.cookie.length > 0) {
+	    offset = document.cookie.indexOf(search)
+	    // if cookie exists
+	    if (offset != -1) { 
+	      offset += search.length
+	      // set index of beginning of value
+	      end = document.cookie.indexOf(";", offset);
+	      // set index of end of cookie value
+	      if (end == -1) end = document.cookie.length;
+	      returnvalue=unescape(document.cookie.substring(offset, end))
+	      }
+	   }
+	  return returnvalue;
+	}
+function pageScroll() {
+	var scrollY = get_cookie("scrollY");
+	var scrollX = get_cookie("scrollX");
+	window.scrollBy(scrollX,scrollY); 
+}
+
+function setPageScroll() {
+	var exp = new Date( );
+	var nowPlus = exp.getTime( ) + (5000);
+	exp.setTime(nowPlus);
+	document.cookie = "scrollY=" + getScrollXY()[1] + "; expires=" + exp.toGMTString( );
+	document.cookie = "scrollX=" + getScrollXY()[0] + "; expires=" + exp.toGMTString( );
+}
+function showUpload() {
+	document.getElementById("upload").style.visibility = 'visible';
+	if(!document.getElementById("overlay")){
+		x = document.getElementsByTagName("img");
+		for (i=0;i<x.length;i++)
+		{
+			x[i].style.visibility = 'hidden';
+		}
+	} else {
+		document.getElementById("overlay").style.visibility = 'visible';
+	}
+}
+function hideUpload() {
+	document.getElementById("upload").style.visibility = 'hidden';
+	if(!document.getElementById("overlay")){
+		x = document.getElementsByTagName("img");
+		for (i=0;i<x.length;i++)
+		{
+			x[i].style.visibility = 'visible';
+		}
+	} else {
+	document.getElementById("overlay").style.visibility = 'hidden';
+	}
+}
+function showLinkUpload() {
+	document.getElementById("uploadLink").style.visibility = 'visible';
+	if(!document.getElementById("overlay")){
+		x = document.getElementsByTagName("img");
+		for (i=0;i<x.length;i++)
+		{
+			x[i].style.visibility = 'hidden';
+		}
+	} else {
+		document.getElementById("overlay").style.visibility = 'visible';
+	}
+}
+function hideLinkUpload() {
+	document.getElementById("uploadLink").style.visibility = 'hidden';
+	if(!document.getElementById("overlay")){
+		x = document.getElementsByTagName("img");
+		for (i=0;i<x.length;i++)
+		{
+			x[i].style.visibility = 'visible';
+		}
+	} else {
+	document.getElementById("overlay").style.visibility = 'hidden';
+	}
+}
+</script>
+<style type="text/css">
+.drag {position: absolute;}
+//img {
+//	-moz-box-shadow: 1px 1px 12px #999;
+//	-webkit-box-shadow: 1px 1px 12px #999;
+//        box-shadow: 1px 1px 12px #999;
+//        }
+//img:hover {
+//	-moz-box-shadow: 1px 1px 24px #999;
+//	-webkit-box-shadow: 1px 1px 24px #999;
+//        box-shadow: 1px 1px 24px #999;
+//}
+.toolbar {
+bottom:0px;
+left:-10%;
+width:110%;
+height:25px;
+background-color:gray; 
+opacity:0.95;
+position:fixed;
+z-index:13000;
+	-moz-box-shadow: 1px 1px 25px #999;
+	-webkit-box-shadow: 1px 1px 25px #999;
+        box-shadow: 1px 1px 25px #999;
+}
+.titlebar {
+visibility:hidden;
+top:0px;
+left:-10%;
+width:110%;
+height:25px;
+background-color:gray; 
+opacity:0.95;
+position:fixed;
+font-family:Arial;
+font-size:16px;
+z-index:5000;
+	-moz-box-shadow: 1px 1px 25px #999;
+	-webkit-box-shadow: 1px 1px 25px #999;
+        box-shadow: 1px 1px 25px #999;
+}
+	</style>
+	
+	<script type="text/javascript">
+	function getWindowSize() {
+         var viewportwidth;
+         var viewportheight;
+        
+         if (typeof window.innerWidth != 'undefined')
+         {
+              viewportwidth = window.innerWidth;
+              viewportheight = window.innerHeight;
+         } else if (typeof document.documentElement != 'undefined'
+             && typeof document.documentElement.clientWidth !=
+             'undefined' && document.documentElement.clientWidth != 0)
+         {
+               viewportwidth = document.documentElement.clientWidth;
+               viewportheight = document.documentElement.clientHeight;
+         } else {
+               viewportwidth = document.getElementsByTagName('body')[0].clientWidth;
+               viewportheight = document.getElementsByTagName('body')[0].clientHeight
+         }
+         if(viewportwidth==0) {
+        	 viewportwidth = document.getElementsByTagName('body')[0].clientWidth;}
+         if(viewportheight==0) {
+             viewportheight = document.getElementsByTagName('body')[0].clientWidth;}
+         return [viewportwidth, viewportheight];
+	}
+</script>
+<script type="text/javascript">
+function resizeFirst() {
+	x = document.getElementsByTagName("img");
+	var viewportwidth = getWindowSize()[0];
+	for (i=0;i<x.length;i++)
+	{
+		x[i].style.width = x[i].width*(viewportwidth/1366)+"px";
+		x[i].style.height = x[i].height*(viewportwidth/1366)+"px";
+		x[i].style.left = parseInt(x[i].style.left)*(viewportwidth/1366)+"px";
+		x[i].style.top = parseInt(x[i].style.top)*(viewportwidth/1366)+"px";
+	}
+}
+
+function showDelete() {
+	x = document.getElementsByTagName("img");
+	for (i=0;i<x.length;i++)
+	{
+	if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+	var element = document.createElement("input");
+	element.setAttribute("type","button");
+	element.setAttribute("value","x");
+	element.setAttribute("onclick","javascript:deleteImage(this)");
+	element.onclick = function() {deleteImage(this);};
+	element.style.position = 'absolute';
+	element.style.left = '0px';
+	element.style.top = '0px';
+	x[i].parentNode.appendChild(element);
+	}
+}
+	document.getElementById("adminDeleteButton").onclick = hideDelete;
+	document.getElementById("adminDeleteButton").value = "Done deleting";
+	
+}
+
+function hideDelete() {
+	x = document.getElementsByTagName("img");
+	for (i=0;i<x.length;i++)
+	{
+		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
+		}
+}
+	document.getElementById("adminDeleteButton").onclick = showDelete;
+	document.getElementById("adminDeleteButton").value = "Delete image";
+}
+
+ function fullScreen(el) {
+	 if(document.getElementById(el.src.split("/").pop().replace('-small','').replace('-medium','').replace('-large','')+"link")) {
+		 var linkObj = document.getElementById(el.src.split("/").pop().replace('-small','').replace('-medium','').replace('-large','')+"link");
+		 if(linkObj.innerText){
+			 window.location = linkObj.innerText;
+		 } else if(linkObj.textContent) {
+			 window.location = linkObj.textContent;
+		 }
+	 } else {
+        document.getElementById("fullScreenImage").src = el.src;
+        var ih = document.getElementById(el.id).firstChild.height;
+        var iw = document.getElementById(el.id).firstChild.width;
+        document.getElementById("fullScreenImage").style.width = getWindowSize()[0] + 'px';
+           var rs = getWindowSize()[1]/getWindowSize()[0];
+           var ri = ih/iw;
+           var rsi = rs/ri;
+           if(rsi>1) {
+               document.getElementById("fullScreenImg").style.width = 0.9*getWindowSize()[0] + 'px';
+               document.getElementById("fullScreenImg").style.left = 0.05*getWindowSize()[0] + 'px';
+               document.getElementById("fullScreenImage").style.width = 0.9*getWindowSize()[0] + 'px';
+           } else {
+               var rsic = rsi*0.9*getWindowSize()[0];
+               document.getElementById("fullScreenImg").style.width = rsic + 'px';
+               document.getElementById("fullScreenImg").style.left = (getWindowSize()[0]-rsic)/2 + 'px';
+               document.getElementById("fullScreenImage").style.width = rsic + 'px';
+           }
+
+       if(document.getElementById("overlay")){
+       		document.getElementById("overlay").style.visibility = 'visible';
+       }
+       if(document.getElementById("fullScreenImage").complete) {
+           document.getElementById("closeFullscreenButton").style.visibility = 'visible';
+           document.getElementById("fullScreenImg").style.visibility = 'visible';
+           document.getElementById("fullScreenImage").style.visibility = 'visible';
+       }
+       document.getElementById("fullScreenImage").onload = function() {
+               document.getElementById("closeFullscreenButton").style.visibility = 'visible';
+               document.getElementById("fullScreenImg").style.visibility = 'visible';
+               document.getElementById("fullScreenImage").style.visibility = 'visible';
+       }
+       var hiResImg = new Image();
+       hiResImg.src = el.src.substring(0,el.src.lastIndexOf('-')) + '-large' + el.src.substring(el.src.lastIndexOf('.'));
+       if(hiResImg.complete) {
+           if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
+                document.getElementById("fullScreenImage").src = hiResImg.src;
+           }
+       }
+       hiResImg.onload = function() {
+           if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
+               document.getElementById("fullScreenImage").src = hiResImg.src;
+           }
+       }
+     }
+    ddpp = dd;
+    dd.obj=null;
+    dd.evt=function(d_e) {};
+}
+
+function closeFullscreen() {
+    dd=ddpp;
+    dd.evt = function(d_e)
+    {
+        this.but = (this.e = d_e || window.event).which || this.e.button || 0;
+        this.button = (this.e.type == 'mousedown')? this.but
+    		: (dd.e && dd.e.button)? dd.e.button
+    		: 0;
+    	this.src = this.e.target || this.e.srcElement || null;
+    	this.src.tag = ("" + (this.src.tagName || this.src)).toLowerCase();
+    	this.x = dd.Int(this.e.pageX || this.e.clientX || 0);
+    	this.y = dd.Int(this.e.pageY || this.e.clientY || 0);
+    	if(dd.ie)
+    	{
+    		this.x += dd.getScrollX() - (dd.ie && !dd.iemac)*1;
+    		this.y += dd.getScrollY() - (dd.ie && !dd.iemac)*1;
+    	}
+    	//this.modifKey = this.e.modifiers? this.e.modifiers&Event.SHIFT_MASK : (this.e.shiftKey || false);
+    	if((this.but==3) || (this.but==2)){
+    		this.modifKey = true;
+    	} else {
+    		this.modifKey = false;
+    	}
+    };
+	document.getElementById("fullScreenImage").style.visibility = 'hidden';
+   document.getElementById("fullScreenImg").style.visibility = 'hidden';
+   if(document.getElementById("overlay")){
+   		document.getElementById("overlay").style.visibility = 'hidden';
+   }
+   document.getElementById("closeFullscreenButton").style.visibility = 'hidden';
+}
+
+function deleteImage(el) {
+	saveToLocalStorage();
+	setPageScroll();
+  var myForm = document.createElement("form");
+  myForm.method="post" ;
+  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/photos/delete";
+    var myInput = document.createElement("input") ;
+    myInput.setAttribute("name", "file") ;
+    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myForm.appendChild(myInput) ;
+    var myInput5 = document.createElement("input") ;
+    myInput5.setAttribute("name", "deleteIsOn") ;
+    myInput5.setAttribute("value", "false");
+    myForm.appendChild(myInput5) ;
+  document.body.appendChild(myForm) ;
+  myForm.submit() ;
+  document.body.removeChild(myForm) ;
+}
+
+function success() {
+    
+}
+function saveCoords() {
+    saveToLocalStorage();
+    setPageScroll();
+    
+    var data = new Object();
+    data.side = dd.obj.x*(1366/getWindowSize()[0]);
+    data.top = dd.obj.y*(1366/getWindowSize()[0]);
+    data.image = dd.obj.name;
+    data.width = dd.obj.w*(1366/getWindowSize()[0]);
+    data.height = dd.obj.h*(1366/getWindowSize()[0]);
+    data.deleteIsOn = '';
+    data.z = dd.z;
+    $.ajax({
+      type: 'POST',
+      url: '/<%=data.params.user + '/' + data.params.gallery%>/upsert',
+      data: data,
+      success: success(),
+      dataType: 'json'
+    });
+}
+
+function logout() {
+  saveToLocalStorage();
+  var myForm = document.createElement("form");
+  myForm.method="post" ;
+  myForm.action = "/";
+  document.body.appendChild(myForm);
+  myForm.submit();
+  document.body.removeChild(myForm);
+}
+
+function goHome() {
+  saveToLocalStorage();
+  var myForm = document.createElement("form");
+  myForm.method="get" ;
+  myForm.action = '/<%=data.params.user%>/galleries/list';
+  document.body.appendChild(myForm);
+  myForm.submit();
+  document.body.removeChild(myForm);
+}
+function shortClick(src) {
+	alert(src);
+}
+function fullScreenButton(el) {
+	var fullScreenButton = document.createElement("img");
+	fullScreenButton.setAttribute("id", "fullScreenButton");
+	fullScreenButton.setAttribute("src","/images/upArrow.png");
+	el.parentNode.appendChild(fullScreenButton);
+	fullScreenButton = document.getElementById("fullScreenButton");
+	fullScreenButton.style.position = 'absolute';
+	fullScreenButton.style.left = '0px';
+	fullScreenButton.style.top = '0px';
+	fullScreenButton.style.width = el.width*0.05+"px";
+	fullScreenButton.style.height = fullScreenButton.style.width;
+	fullScreenButton.style.visibility = 'visible';
+	
+	var fullScreenButton2 = document.createElement("img");
+	fullScreenButton2.setAttribute("id", "fullScreenButton2");
+	fullScreenButton2.setAttribute("src","/images/downArrow.png");
+	el.parentNode.appendChild(fullScreenButton2);
+	fullScreenButton2 = document.getElementById("fullScreenButton2");
+	fullScreenButton2.style.position = 'absolute';
+	fullScreenButton2.style.right = '0px';
+	fullScreenButton2.style.bottom = '0px';
+	fullScreenButton2.style.width = el.width*0.05+"px";
+	fullScreenButton2.style.height = fullScreenButton2.style.width;
+	fullScreenButton2.style.visibility = 'visible';
+}
+function deleteFullScreenButton(el) {
+	var fullScreenButton = document.getElementById("fullScreenButton");
+	fullScreenButton.parentNode.removeChild(fullScreenButton);
+	var fullScreenButton2 = document.getElementById("fullScreenButton2");
+	fullScreenButton2.parentNode.removeChild(fullScreenButton2);
+}
+</script>
+	
+</head>
+
+<body oncontextmenu="return false;" >
+
+  <div align="center" class="toolbar" id="toolbar" style="z-index:13000;">
+   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+  <input type="button" onclick="goHome();" value="Home" />
+  <input type="button" onclick="logout();" value="Log out" />
+  <input type="button" onclick="showUpload();" value="Upload new images" />
+  <input type="button" onclick="showLinkUpload();" value="Upload link image" />
+  <input type="button" onclick="window.open(document.URL.split('#')[0] + '/draw','_blank','location=0,width=900,height=600');" value="Draw image" />
+  <input type="button" id="adminDeleteButton" onclick="showDelete();" value="Delete image" />
+  </div>
+
+<script type="text/javascript" src="/js/wz_dragdrop.js"></script>
+
+
+<table width="100%" height="100%">
+  <tr>
+    <td align="center" valign="middle">
+		<div name="upload" id="upload" style="position:fixed;visibility:hidden;left:30%;top:40%;width:40%;z-index:12000;font-family:Arial;font-size:18px;" align="center">
+		<form name="upload" action="/<%=data.params.user + '/' + data.params.gallery%>/photos/new" enctype="multipart/form-data" method="post">
+		<b>Select files to upload:</b><br/>
+		<input type="file" name="image" multiple/>
+		<input type="submit" name="Upload" value="Upload"/><input type="button" onclick="hideUpload();" value="Cancel" />
+		</form></div><br/>		
+	</td>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+		<div name="uploadLink" id="uploadLink" style="position:fixed;visibility:hidden;left:30%;top:40%;width:40%;z-index:12000;font-family:Arial;font-size:18px;" align="center">
+		<form name="uploadLink" action="/<%=data.params.user + '/' + data.params.gallery%>/photos/newlink" enctype="multipart/form-data" method="post">
+		Link: <input type="text" name="link" length="50" /><br/>
+		<b>Select file to upload:</b><br/>
+		<input type="file" name="image" /><br/>
+		<input type="submit" name="uploadLink" value="Upload file"/><input type="button" onclick="hideLinkUpload();" value="Cancel" />
+		</form></div><br/>		
+	</td>
+  </tr>
+</table>
+
+<div name="overlay" id="overlay" style="left:-50px;top:-50px;position:fixed;visibility:hidden;width:150%;height:150%;z-index:11000;background-color:gray;opacity:0.95;" ></div>
+
+<% var il = "";
+for(var i in data.images) { 
+    if(data.images[i].link.length>2) {
+          %>
+    	  <div style="visibility:hidden;" id="<%=data.images[i].source.split('/').pop()%>link"><%=data.images[i].link%></div>
+    	  <%
+    }
+    if((data.images[i].width<400) && (data.images[i].height<400)) {
+%>
+<img src="<%=data.images[i].source.split('.')[0]+'-small.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<% 
+} else if((data.images[i].width<900) && (data.images[i].height<900)) {
+%>
+<img src="<%=data.images[i].source.split('.')[0]+'-medium.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<%
+} else {
+%>
+<img src="<%=data.images[i].source.split('.')[0]+'-large.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<%
+}
+il += data.images[i].source.split('/').pop() + '","';
+} %>
+
+<script type="text/javascript">
+function setDraggables() {
+	SET_DHTML(SCALABLE, SCROLL, "<%- il.substring(0, il.length-3)%>");
+}
+resizeFirst();
+setDraggables(); 
+pageScroll();
+if(false) showDelete();
+function setHover() {
+	x = document.getElementsByTagName("img");
+	for (i=0;i<x.length;i++)
+	{
+		if(x[i].name.split("jpgdivNI")[1]=="mG") {
+			x[i].onmouseover = function() {fullScreenButton(this);};
+			x[i].onmouseout = function() {deleteFullScreenButton(this);};
+		}
+	}
+}
+//setHover();
+
+  </script>
+
+
+<div id="fullScreenImg" style="top:4%;visibility:hidden;z-index:12000;position:fixed;">
+<img class="no-hover" id ="fullScreenImage" style="top:0px;left:0px;position:absolute;z-index:12001;visibility:hidden;" src="" />
+<img class="no-hover" id="closeFullscreenButton" src="/images/close.png" style="cursor:pointer;visibility:hidden;position:absolute;left:-40px;top:0px;z-index:10000;" onclick="closeFullscreen();"/>
+</div>
+<img src="/images/upArrow.png" style="visibility:hidden" />
+<img src="/images/downArrow.png" style="visibility:hidden" />
+		<script type="text/javascript" src="/js/brushes/circles.js"></script>
+		<script type="text/javascript" src="/js/brushes/chrome.js"></script>
+		<script type="text/javascript" src="/js/brushes/fur.js"></script>
+		<script type="text/javascript" src="/js/brushes/grid.js"></script>
+		<script type="text/javascript" src="/js/brushes/longfur.js"></script>
+		<script type="text/javascript" src="/js/brushes/ribbon.js"></script>
+		<script type="text/javascript" src="/js/brushes/shaded.js"></script>
+		<script type="text/javascript" src="/js/brushes/simple.js"></script>
+		<script type="text/javascript" src="/js/brushes/sketchy.js"></script>
+		<script type="text/javascript" src="/js/brushes/squares.js"></script>
+		<script type="text/javascript" src="/js/brushes/web.js"></script>
+		<script type="text/javascript" src="/js/colorutils.js"></script>
+		<script type="text/javascript" src="/js/colorselector.js"></script>
+		<script type="text/javascript" src="/js/palette.js"></script>
+		<script type="text/javascript" src="/js/menu.js"></script>
+		<!--<script type="text/javascript" src="js/about.js"></script>-->	
+		<script type="text/javascript" src="/js/main.js"></script>
+		<script type="text/javascript">
+		context.clearRect(0,0,canvas.width,canvas.height);
+			var img     = new Image();
+	    	img.onload  = function() {
+	        	context.drawImage(img, 0, 0, canvas.width, (img.height/img.width)*canvas.width);
+	    	}
+	    	img.src     = "/images/<%=data.params.user + '-' + data.params.gallery%>-bg.png";
+		</script>
+</body>
+</html>
