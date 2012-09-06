@@ -300,11 +300,17 @@ function hideDelete() {
  function fullScreen(el) {
 	 if(document.getElementById(el.src.split("/").pop().replace('-small','').replace('-medium','').replace('-large','')+"link")) {
 		 var linkObj = document.getElementById(el.src.split("/").pop().replace('-small','').replace('-medium','').replace('-large','')+"link");
+         var t = '';
 		 if(linkObj.innerText){
-			 window.location = linkObj.innerText;
+			 t = linkObj.innerText;
 		 } else if(linkObj.textContent) {
-			 window.location = linkObj.textContent;
+			 t = linkObj.textContent;
 		 }
+         if(t.indexOf('javascript:')==-1) {
+             window.location = t;
+         } else {
+             eval(t);
+         }
 	 } else {
         document.getElementById("fullScreenImage").src = el.src;
         var ih = document.getElementById(el.id).firstChild.height;
