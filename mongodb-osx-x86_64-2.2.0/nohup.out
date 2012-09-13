@@ -1094,3 +1094,6 @@ Thu Sep 13 14:13:03 [initandlisten] connection accepted from 127.0.0.1:51626 #19
 Thu Sep 13 14:13:03 [conn193] end connection 127.0.0.1:51626 (0 connections now open)
 Thu Sep 13 14:13:03 [initandlisten] connection accepted from 127.0.0.1:51627 #194 (1 connection now open)
 Thu Sep 13 14:13:03 [conn194] end connection 127.0.0.1:51627 (0 connections now open)
+Thu Sep 13 14:43:44 [initandlisten] connection accepted from 127.0.0.1:54851 #195 (1 connection now open)
+Thu Sep 13 14:43:45 [conn195] command admin.$cmd command: { listDatabases: 1 } ntoreturn:1 keyUpdates:0 locks(micros) R:3 W:916862 r:747 reslen:292 924ms
+Thu Sep 13 14:43:45 [conn195] end connection 127.0.0.1:54851 (0 connections now open)
