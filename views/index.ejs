@@ -85,6 +85,37 @@
             }
 		</style>
 <script type="text/javascript" >
+function loginSuccess() {
+    setTimeout(function(){window.location.reload(true);}, 1000);
+}
+    
+function login() {
+    var data = new Object();
+    data.user = prompt("Enter username","");
+    data.password = prompt("Enter password","");
+    $.ajax({
+       type: 'POST',
+       url: '/users/list/login',
+       data: data,
+       success: loginSuccess(),
+       dataType: 'json'
+    });
+}
+
+function logoutSuccess() {
+        setTimeout(function(){window.location.reload(true);}, 1000);
+    }
+
+function logout() {
+    $.ajax({
+       type: 'POST',
+       url: '/users/list/logout',
+       data: '',
+       success: logoutSuccess(),
+       dataType: 'json'
+    });
+}
+
 var ddpp=null;
 function getScrollXY() {
 	  var scrOfX = 0, scrOfY = 0;
@@ -292,7 +323,7 @@ function hideDelete() {
 		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
 			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
 		}
-}
+    }
 	document.getElementById("adminDeleteButton").onclick = showDelete;
 	document.getElementById("adminDeleteButton").value = "Delete image";
 }
@@ -355,10 +386,10 @@ function hideDelete() {
                document.getElementById("fullScreenImage").src = hiResImg.src;
            }
        }
+        ddpp = dd;
+        dd.obj=null;
+        dd.evt=function(d_e) {};
      }
-    ddpp = dd;
-    dd.obj=null;
-    dd.evt=function(d_e) {};
 }
 
 function closeFullscreen() {
@@ -436,14 +467,56 @@ function saveCoords() {
     });
 }
 
-function logout() {
-  saveToLocalStorage();
+function updateLink(el) {
+    saveToLocalStorage();
+	setPageScroll();
   var myForm = document.createElement("form");
   myForm.method="post" ;
-  myForm.action = "/";
-  document.body.appendChild(myForm);
-  myForm.submit();
-  document.body.removeChild(myForm);
+  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/updateLink";
+    var myInput = document.createElement("input") ;
+    myInput.setAttribute("name", "file") ;
+    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myForm.appendChild(myInput) ;
+    var myInput5 = document.createElement("input") ;
+    myInput5.setAttribute("name", "link") ;
+    myInput5.setAttribute("value", prompt("Link", ""));
+    myForm.appendChild(myInput5) ;
+  document.body.appendChild(myForm) ;
+  myForm.submit() ;
+  document.body.removeChild(myForm) ;
+}
+
+function hideLinkUpdate() {
+    x = document.getElementsByTagName("img");
+	for (i=0;i<x.length;i++)
+	{
+		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
+		}
+    }
+	document.getElementById("updateLinkButton").onclick = showLinkUpdate;
+	document.getElementById("updateLinkButton").value = "Update Image Link";
+}
+
+function showLinkUpdate() {
+    x = document.getElementsByTagName("img");
+	for (i=0;i<x.length;i++)
+	{
+    	if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+    	var element = document.createElement("input");
+    	element.setAttribute("type","button");
+    	element.setAttribute("value","This");
+    	element.setAttribute("onclick","javascript:updateLink(this)");
+    	element.onclick = function() {updateLink(this);};
+    	element.style.position = 'absolute';
+    	element.style.left = '0px';
+    	element.style.top = '0px';
+    	x[i].parentNode.appendChild(element);
+    	}
+    }
+	document.getElementById("updateLinkButton").onclick = hideLinkUpdate;
+	document.getElementById("updateLinkButton").value = "Cancel";
+	
 }
 
 function goHome() {
@@ -498,11 +571,11 @@ function deleteFullScreenButton(el) {
   <div align="center" class="toolbar" id="toolbar" style="z-index:13000;">
    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
   <input type="button" onclick="goHome();" value="Home" />
-  <input type="button" onclick="logout();" value="Log out" />
   <input type="button" onclick="showUpload();" value="Upload new images" />
   <input type="button" onclick="showLinkUpload();" value="Upload link image" />
   <input type="button" onclick="window.open(document.URL.split('#')[0] + '/draw','_blank','location=0,width=900,height=600');" value="Draw image" />
   <input type="button" id="adminDeleteButton" onclick="showDelete();" value="Delete image" />
+  <input type="button" id="updateLinkButton" onclick="showLinkUpdate();" value="Update Image Link" />
   </div>
 
 <script type="text/javascript" src="/js/wz_dragdrop.js"></script>
@@ -523,7 +596,7 @@ function deleteFullScreenButton(el) {
     <td align="center" valign="middle">
 		<div name="uploadLink" id="uploadLink" style="position:fixed;visibility:hidden;left:30%;top:40%;width:40%;z-index:12000;font-family:Arial;font-size:18px;" align="center">
 		<form name="uploadLink" action="/<%=data.params.user + '/' + data.params.gallery%>/photos/newlink" enctype="multipart/form-data" method="post">
-		Link: <input type="text" name="link" length="50" /><br/>
+		Link or Javascript: <textarea name="link" rows="10" cols="50"></textarea><br/>
 		<b>Select file to upload:</b><br/>
 		<input type="file" name="image" /><br/>
 		<input type="submit" name="uploadLink" value="Upload file"/><input type="button" onclick="hideLinkUpload();" value="Cancel" />

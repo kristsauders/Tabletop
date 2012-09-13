@@ -11,8 +11,11 @@ var express = require('express'),
 	}), {}),
 	im = require('imagemagick');
 
-im.identify.path = '/usr/bin/identify';
-im.convert.path = '/usr/bin/convert';
+//Configure path to ImageMagick
+//im.identify.path = '/usr/bin/identify';
+//im.convert.path = '/usr/bin/convert';
+im.identify.path = '/opt/local/bin/identify';
+im.convert.path = '/opt/local/bin/convert';
 
 app.use(express.cookieParser());
 app.use(express.session({
@@ -35,10 +38,10 @@ app.get('/:user/:gallery/draw', function(req, res) {
 	});
 });
 
-app.get('/:user/:gallery/photos/new', function(req, res) {
-    console.log('got new photo get');
-	res.send('<form method="post" enctype="multipart/form-data">' + '<p>Image: <input type="file" name="image" multiple/></p>' + '<p><input type="submit" value="Upload" /></p>' + '</form>');
-});
+//app.get('/:user/:gallery/photos/new', function(req, res) {
+//    console.log('got new photo get');
+//	res.send('<form method="post" enctype="multipart/form-data">' + '<p>Image: <input type="file" name="image" multiple/></p>' + '<p><input type="submit" value="Upload" /></p>' + '</form>');
+//});
 
 function processUpload(req, res) {
     im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', req.files.image.path.split('.')[0] + '-medium.jpg'], function(err) {
@@ -137,7 +140,7 @@ function processUploads(req, res, k) {
 }
 
 app.post('/:user/:gallery/photos/new', function(req, res, next) {
-    console.log('got new photo post');
+    console.log('Got new photo post');
 	if (req.files.image.path) processUpload(req, res);
 	else {
 		processUploads(req, res, 0);
@@ -169,7 +172,7 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
     					var p = 0;
     					for (var i in gal) p += 1;
     					gal[p] = new Object();
-    					gal[p].source = '/images/' + path.split('/').pop()+'.jpg';;
+    					gal[p].source = '/images/' + path.split('/').pop();
     					gal[p].top = Math.floor(Math.random() * 701);
     					gal[p].left = Math.floor(Math.random() * 901);
     					gal[p].link = '';
@@ -283,7 +286,7 @@ app.get('/:user/:gallery', function(req, res) {
 });
 
 app.post('/:user/:gallery/upsert', function(req, res) {
-    console.log('upsert');
+    console.log('Coords update');
 	db.open(function(err, db) {
 		db.collection('users', function(err, collection) {
 			collection.findOne({
@@ -305,6 +308,39 @@ app.post('/:user/:gallery/upsert', function(req, res) {
 				gal[p].width = req.body.width;
 				gal[p].height = req.body.height;
 				gal[p].z = req.body.z;
+				document.galleries[req.params.gallery] = gal;
+				collection.update({
+					"user": req.params.user
+				}, document, {
+					upsert: true,
+					safe: true
+				}, function(err, document) {
+					db.close();
+				});
+				res.redirect('back');
+			});
+		});
+	});
+});
+
+app.post('/:user/:gallery/updateLink', function(req, res) {
+    console.log('Link update');
+    db.open(function(err, db) {
+		db.collection('users', function(err, collection) {
+			collection.findOne({
+				"user": req.params.user
+			}, function(err, document) {
+				var gal = document.galleries[req.params.gallery];
+				var p = 0;
+				for (var i in gal) {
+					if (gal[p].source.split('/').pop() == req.body.file) {
+						break;
+					}
+					else {
+						p += 1;
+					}
+				}
+				gal[p].link = req.body.link;
 				document.galleries[req.params.gallery] = gal;
 				collection.update({
 					"user": req.params.user
@@ -466,7 +502,7 @@ app.post('/:user/galleries/new', function(req, res) {
 });
 
 app.post('/users/list/new', function(req, res) {
-    console.log('new user');
+    console.log('New user ' + req.body.user);
 	db.open(function(err, db) {
 		db.collection('users', function(err, collection) {
 			collection.findOne({
@@ -495,23 +531,34 @@ app.post('/users/list/new', function(req, res) {
 });
 
 app.post('/users/list/login', function(req, res) {
-    console.log('login by ' + req.body.user);
-    db.open(function(err, db) {
-		db.collection('users', function(err, collection) {
-			collection.findOne({
-				"user": req.body.user
-			}, function(err, document) {
-				if(document.password == req.body.password) {
-                    req.session.user = req.body.user;
-                    req.session.password = req.body.password;
-	                res.redirect('/' + req.body.user + '/galleries/list');
-				} else {
-                    res.redirect('back');
-				}
-				db.close();
-			});
-		});
-	});
+    console.log('Login by ' + req.body.user);
+    if(req.body.user.length>0) {
+        db.open(function(err, db) {
+    		db.collection('users', function(err, collection) {
+    			collection.findOne({
+    				"user": req.body.user
+    			}, function(err, document) {
+    				if(document.password == req.body.password) {
+                        req.session.user = req.body.user;
+                        req.session.password = req.body.password;
+    	                res.redirect('/' + req.body.user + '/galleries/list');
+                        console.log('Correct Password');
+    				} else {
+                        console.log('Wrong Password');
+                        res.redirect('back');
+    				}
+    				db.close();
+    			});
+    		});
+    	});
+    }
+});
+
+app.post('/users/list/logout', function(req, res) {
+    console.log('Logout by ' + req.session.user);
+    req.session.user = '';
+    req.session.password = '';
+    res.redirect('/users/list');
 });
 
 app.get('/', function(req, res) {
