@@ -186,7 +186,7 @@ function goHome() {
   saveToLocalStorage();
   var myForm = document.createElement("form");
   myForm.method="get" ;
-  myForm.action = '/<%=data.params.user%>/galleries/list';
+  myForm.action = '/<%=data.params.user%>/galleries';
   document.body.appendChild(myForm);
   myForm.submit();
   document.body.removeChild(myForm);
@@ -199,9 +199,15 @@ function goHome() {
   <div align="center" class="toolbar" id="toolbar" style="z-index:13000;">
    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
   <input type="button" onclick="goHome();" value="Home" />
+  <input type="button" onclick="newGallery();" value="New Gallery" />
+  <input type="button" onclick="deleteGallery();" value="Delete Gallery" />
+  <input type="button" onclick="login();" value="Log In" />
+  <input type="button" onclick="logout();" value="Log Out" />
+  <input type="button" onclick="signup();" value="Sign Up" />
+  <input type="button" onclick="deleteAccount();" value="Delete Account" />
   <input type="button" onclick="showUpload();" value="Upload new images" />
   <input type="button" onclick="showLinkUpload();" value="Upload link image" />
-  <input type="button" onclick="window.open(document.URL.split('#')[0] + '/draw','_blank','location=0,width=900,height=600');" value="Draw image" />
+  <input type="button" onclick="drawImage();" value="Draw image" />
   <input type="button" id="adminDeleteButton" onclick="showDelete();" value="Delete image" />
   <input type="button" id="updateLinkButton" onclick="showLinkUpdate();" value="Update Image Link" />
   </div>
@@ -268,7 +274,7 @@ il += data.images[i].source.split('/').pop() + '","';
             c++;
 %>
             <a href="<%='/' + data.params.user + '/' + i%>">
-                <img src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:10000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+                <img alt="Empty Gallery" src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:10000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
             </a>
 <%
         }

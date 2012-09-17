@@ -157,7 +157,8 @@ function resizeFirst() {
 	{
         if(x[i].id=="background") continue;
 		x[i].style.width = x[i].width*(viewportwidth/1366)+"px";
-		x[i].style.height = x[i].height*(viewportwidth/1366)+"px";
+        if(x[i].style.height)
+		    x[i].style.height = x[i].height*(viewportwidth/1366)+"px";
 		x[i].style.left = parseInt(x[i].style.left)*(viewportwidth/1366)+"px";
 		x[i].style.top = parseInt(x[i].style.top)*(viewportwidth/1366)+"px";
 	}
@@ -427,4 +428,7 @@ function deleteGallery() {
        function(data) {
 	deleteGallery();
     });
+}
+function drawImage() {
+    window.open(document.URL.split('#')[0].split('?')[0] + '/draw','_blank','location=0,width=900,height=600');
 }

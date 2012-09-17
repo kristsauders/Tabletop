@@ -85,7 +85,7 @@ il += data.images[i].source.split('/').pop() + '","';
             c++;
 %>
             <a href="<%='/' + data.params.user + '/' + i%>">
-                <img src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+                <img alt="Empty Gallery" src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
             </a>
 <%
         }
