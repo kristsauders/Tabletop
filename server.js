@@ -12,10 +12,12 @@ var express = require('express'),
 	im = require('imagemagick');
 
 //Configure path to ImageMagick
-//im.identify.path = '/usr/bin/identify';
-//im.convert.path = '/usr/bin/convert';
-im.identify.path = '/opt/local/bin/identify';
-im.convert.path = '/opt/local/bin/convert';
+im.identify.path = '/usr/bin/identify';
+im.convert.path = '/usr/bin/convert';
+
+//Path for OSX
+//im.identify.path = '/opt/local/bin/identify';
+//im.convert.path = '/opt/local/bin/convert';
 
 app.use(express.cookieParser());
 app.use(express.session({
