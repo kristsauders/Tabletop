@@ -75,10 +75,28 @@ for(var i in data.images) {
 il += data.images[i].source.split('/').pop() + '","';
 } %>
 
+<%
+    if(data.params.gallery=='galleries') {
+        var c = 0;
+        for(var i in data.galleries) {
+            var source = data.galleries[i][0];
+            if(source) source = source.source;
+            else source = "";
+            c++;
+%>
+            <a href="<%='/' + data.params.user + '/' + i%>">
+                <img src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+            </a>
+<%
+        }
+    }
+%>
+
 <script type="text/javascript">
 function setDraggables() {
 	SET_DHTML(SCALABLE, SCROLL, "<%- il.substring(0, il.length-3)%>");
 }
+resizeFirst();
 setDraggables(); 
 pageScroll();
 if(false) showDelete();

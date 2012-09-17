@@ -125,6 +125,73 @@ z-index:5000;
 }
 		</style>
 <script src="/js/functions.js"></script>
+<script type="text/javascript">
+function deleteImage(el) {
+    saveToLocalStorage();
+	setPageScroll();
+  var myForm = document.createElement("form");
+  myForm.method="post" ;
+  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/photos/delete";
+    var myInput = document.createElement("input") ;
+    myInput.setAttribute("name", "file") ;
+    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myForm.appendChild(myInput) ;
+    var myInput5 = document.createElement("input") ;
+    myInput5.setAttribute("name", "deleteIsOn") ;
+    myInput5.setAttribute("value", "false");
+    myForm.appendChild(myInput5) ;
+  document.body.appendChild(myForm) ;
+  myForm.submit() ;
+  document.body.removeChild(myForm) ;
+}
+function saveCoords() {
+    saveToLocalStorage();
+    setPageScroll();
+    
+    var data = new Object();
+    data.side = dd.obj.x*(1366/getWindowSize()[0]);
+    data.top = dd.obj.y*(1366/getWindowSize()[0]);
+    data.image = dd.obj.name;
+    data.width = dd.obj.w*(1366/getWindowSize()[0]);
+    data.height = dd.obj.h*(1366/getWindowSize()[0]);
+    data.deleteIsOn = '';
+    data.z = dd.z;
+    $.ajax({
+      type: 'POST',
+      url: '/<%=data.params.user + '/' + data.params.gallery%>/upsert',
+      data: data,
+      success: success(),
+      dataType: 'json'
+    });
+}
+function updateLink(el) {
+    saveToLocalStorage();
+    setPageScroll();
+  var myForm = document.createElement("form");
+  myForm.method="post" ;
+  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/updateLink";
+    var myInput = document.createElement("input") ;
+    myInput.setAttribute("name", "file") ;
+    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myForm.appendChild(myInput) ;
+    var myInput5 = document.createElement("input") ;
+    myInput5.setAttribute("name", "link") ;
+    myInput5.setAttribute("value", prompt("Link", ""));
+    myForm.appendChild(myInput5) ;
+  document.body.appendChild(myForm) ;
+  myForm.submit() ;
+  document.body.removeChild(myForm) ;
+}
+function goHome() {
+  saveToLocalStorage();
+  var myForm = document.createElement("form");
+  myForm.method="get" ;
+  myForm.action = '/<%=data.params.user%>/galleries/list';
+  document.body.appendChild(myForm);
+  myForm.submit();
+  document.body.removeChild(myForm);
+}
+</script>
 </head>
 
 <body oncontextmenu="return false;" >
@@ -190,6 +257,23 @@ for(var i in data.images) {
 }
 il += data.images[i].source.split('/').pop() + '","';
 } %>
+
+<%
+    if(data.params.gallery=='galleries') {
+        var c = 0;
+        for(var i in data.galleries) {
+            var source = data.galleries[i][0];
+            if(source) source = source.source;
+            else source = "";
+            c++;
+%>
+            <a href="<%='/' + data.params.user + '/' + i%>">
+                <img src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:10000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+            </a>
+<%
+        }
+    }
+%>
 
 <script type="text/javascript">
 function setDraggables() {

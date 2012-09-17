@@ -155,6 +155,7 @@ function resizeFirst() {
 	var viewportwidth = getWindowSize()[0];
 	for (i=0;i<x.length;i++)
 	{
+        if(x[i].id=="background") continue;
 		x[i].style.width = x[i].width*(viewportwidth/1366)+"px";
 		x[i].style.height = x[i].height*(viewportwidth/1366)+"px";
 		x[i].style.left = parseInt(x[i].style.left)*(viewportwidth/1366)+"px";
@@ -291,66 +292,8 @@ function closeFullscreen() {
    document.getElementById("closeFullscreenButton").style.visibility = 'hidden';
 }
 
-function deleteImage(el) {
-	saveToLocalStorage();
-	setPageScroll();
-  var myForm = document.createElement("form");
-  myForm.method="post" ;
-  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/photos/delete";
-    var myInput = document.createElement("input") ;
-    myInput.setAttribute("name", "file") ;
-    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
-    myForm.appendChild(myInput) ;
-    var myInput5 = document.createElement("input") ;
-    myInput5.setAttribute("name", "deleteIsOn") ;
-    myInput5.setAttribute("value", "false");
-    myForm.appendChild(myInput5) ;
-  document.body.appendChild(myForm) ;
-  myForm.submit() ;
-  document.body.removeChild(myForm) ;
-}
-
 function success() {
     
-}
-function saveCoords() {
-    saveToLocalStorage();
-    setPageScroll();
-    
-    var data = new Object();
-    data.side = dd.obj.x*(1366/getWindowSize()[0]);
-    data.top = dd.obj.y*(1366/getWindowSize()[0]);
-    data.image = dd.obj.name;
-    data.width = dd.obj.w*(1366/getWindowSize()[0]);
-    data.height = dd.obj.h*(1366/getWindowSize()[0]);
-    data.deleteIsOn = '';
-    data.z = dd.z;
-    $.ajax({
-      type: 'POST',
-      url: '/<%=data.params.user + '/' + data.params.gallery%>/upsert',
-      data: data,
-      success: success(),
-      dataType: 'json'
-    });
-}
-
-function updateLink(el) {
-    saveToLocalStorage();
-	setPageScroll();
-  var myForm = document.createElement("form");
-  myForm.method="post" ;
-  myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/updateLink";
-    var myInput = document.createElement("input") ;
-    myInput.setAttribute("name", "file") ;
-    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
-    myForm.appendChild(myInput) ;
-    var myInput5 = document.createElement("input") ;
-    myInput5.setAttribute("name", "link") ;
-    myInput5.setAttribute("value", prompt("Link", ""));
-    myForm.appendChild(myInput5) ;
-  document.body.appendChild(myForm) ;
-  myForm.submit() ;
-  document.body.removeChild(myForm) ;
 }
 
 function hideLinkUpdate() {
@@ -386,15 +329,6 @@ function showLinkUpdate() {
 	
 }
 
-function goHome() {
-  saveToLocalStorage();
-  var myForm = document.createElement("form");
-  myForm.method="get" ;
-  myForm.action = '/<%=data.params.user%>/galleries/list';
-  document.body.appendChild(myForm);
-  myForm.submit();
-  document.body.removeChild(myForm);
-}
 function shortClick(src) {
 	alert(src);
 }
