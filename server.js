@@ -254,6 +254,47 @@ app.post('/:user/:gallery/photos/newlink', function(req, res, next) {
 	});
 });
 
+app.get('/home/:user', function(req, res) {
+    //req.session.user = 'krists';
+    db.open(function(err, db) {
+    	db.collection('users', function(err, collection) {
+            var users = new Array();
+            collection.find().toArray(function(err, document) {
+                var j = 0;
+    			for (var i = 0; i < document.length; i++) {
+					users[i] = document[i].user;
+                    if(document[i].user==req.params.user) j = i;
+                    if((document[i].user=='home') && (req.params.user=='users')) j = i;
+				}
+                var gallery = 'galleries';
+                if(req.params.user=='users') gallery = 'users';
+    			if (document[j].galleries[gallery]) {
+    				if (req.session.user == 'home') res.render('index', {
+    					layout: false,
+    					data: {
+    						images: document[j].galleries[gallery],
+    						params: {'user':'home','gallery':gallery, 'u':req.params.user},
+                            galleries: document[j].galleries,
+                            users: users
+    					}
+    				});
+    				else res.render('public', {
+    					layout: false,
+    					data: {
+    						images: document[j].galleries[gallery],
+        					params: {'user':'home','gallery':gallery, 'u':req.params.user},
+                            galleries: document[j].galleries,
+                            users: users
+    					}
+    				});
+    			}
+    		else res.send('User does not exist!');
+    		db.close();
+			});
+		});
+	});
+});
+
 app.get('/:user/:gallery', function(req, res) {
     //req.session.user = 'krists';
 	db.open(function(err, db) {
@@ -267,16 +308,14 @@ app.get('/:user/:gallery', function(req, res) {
 							layout: false,
 							data: {
 								images: document.galleries[req.params.gallery],
-								params: req.params,
-                                galleries: document.galleries
+								params: req.params
 							}
 						});
 						else res.render('public', {
 							layout: false,
 							data: {
 								images: document.galleries[req.params.gallery],
-								params: req.params,
-                                galleries: document.galleries
+								params: req.params
 							}
 						});
 					}
@@ -666,5 +705,5 @@ app.get('/fbtest2', function(req, res) {
 	});
 });
 
-app.listen(8080);
+app.listen(8082);
 console.log('Started up successfully.');

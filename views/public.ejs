@@ -76,7 +76,7 @@ il += data.images[i].source.split('/').pop() + '","';
 } %>
 
 <%
-    if(data.params.gallery=='galleries') {
+    if((data.params.user=='home') && (data.params.gallery!='users')) {
         var c = 0;
         for(var i in data.galleries) {
             var source = data.galleries[i][0];
@@ -84,8 +84,22 @@ il += data.images[i].source.split('/').pop() + '","';
             else source = "";
             c++;
 %>
-            <a href="<%='/' + data.params.user + '/' + i%>">
+            <a href="<%='/' + data.params.u + '/' + i%>">
                 <img alt="Empty Gallery" src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+            </a>
+<%
+        }
+    }
+%>
+
+<%
+    if((data.params.user=='home') && (data.params.gallery=='users')) {
+        var c = 0;
+        for(var i in data.users) {
+            c++;
+%>
+            <a href="<%='/home/' + data.users[i]%>">
+                <img alt="<%data.users[i]%>" src="" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
             </a>
 <%
         }
