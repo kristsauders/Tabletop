@@ -261,19 +261,22 @@ app.get('/home/:user', function(req, res) {
             var users = new Array();
             collection.find().toArray(function(err, document) {
                 var j = 0;
+                var k = 0;
     			for (var i = 0; i < document.length; i++) {
 					users[i] = document[i].user;
                     if(document[i].user==req.params.user) j = i;
-                    if((document[i].user=='home') && (req.params.user=='users')) j = i;
+                    if((document[i].user=='home')) k = i;
 				}
+                var u = req.params.user;
                 var gallery = 'galleries';
                 if(req.params.user=='users') gallery = 'users';
-    			if (document[j].galleries[gallery]) {
+                if(req.params.user=='galleries') u = 'galleries';
+    			if (document[k].galleries[gallery]) {
     				if (req.session.user == 'home') res.render('index', {
     					layout: false,
     					data: {
-    						images: document[j].galleries[gallery],
-    						params: {'user':'home','gallery':gallery, 'u':req.params.user},
+    						images: document[k].galleries[gallery],
+    						params: {'user':'home','gallery':gallery, 'u': u},
                             galleries: document[j].galleries,
                             users: users
     					}
@@ -281,8 +284,8 @@ app.get('/home/:user', function(req, res) {
     				else res.render('public', {
     					layout: false,
     					data: {
-    						images: document[j].galleries[gallery],
-        					params: {'user':'home','gallery':gallery, 'u':req.params.user},
+    						images: document[k].galleries[gallery],
+        					params: {'user':'home','gallery':gallery, 'u': u},
                             galleries: document[j].galleries,
                             users: users
     					}
@@ -605,26 +608,26 @@ app.post('/users/list/logout', function(req, res) {
 });
 
 app.get('/', function(req, res) {
-    res.redirect('/krists/home');
+    res.redirect('/home/users');
 });
 
-app.get('/admin', function(req, res) {
-	db.open(function(err, db) {
-		db.collection('users', function(err, collection) {
-			collection.find().toArray(function(err, document) {
-				var users = new Array();
-				for (var i = 0; i < document.length; i++) {
-					users[i] = document[i].user;
-				}
-				res.render('users', {
-					layout: false,
-					data: users
-				});
-				db.close();
-			});
-		});
-	});
-});
+//app.get('/admin', function(req, res) {
+//	db.open(function(err, db) {
+//		db.collection('users', function(err, collection) {
+//			collection.find().toArray(function(err, document) {
+//				var users = new Array();
+//				for (var i = 0; i < document.length; i++) {
+//					users[i] = document[i].user;
+//				}
+//				res.render('users', {
+//					layout: false,
+//					data: users
+//				});
+//				db.close();
+//			});
+//		});
+//	});
+//});
 
 app.get('/fbauth', function(req, res) {
     console.log('Got request');

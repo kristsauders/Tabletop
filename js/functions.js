@@ -387,7 +387,7 @@ function deleteAccount() {
     data.password = prompt("Enter password","");
     function deleteUser() {
     setTimeout(function(){
-		window.location = '/admin';
+		window.location = '/';
 	}, 1000);
     }
     $.get(

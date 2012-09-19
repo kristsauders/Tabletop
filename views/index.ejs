@@ -75,6 +75,9 @@
                 /*Glow*/ 
                 -webkit-box-shadow: 0px 0px 5px rgba(255,255,255,0.8); -moz-box-shadow: 0px 0px 5px rgba(255,255,255,0.8); box-shadow: 0px 0px 5px rgba(255,255,255,0.8); 
             }
+            img[title] {
+                font-size: 4em;
+            }
             .no-hover {
                 opacity: 1;  
                 -webkit-box-shadow: 0px 0px 0px; -moz-box-shadow: 0px 0px 0px; box-shadow: 0px 0px 0px;
@@ -186,11 +189,18 @@ function goHome() {
   saveToLocalStorage();
   var myForm = document.createElement("form");
   myForm.method="get" ;
-  myForm.action = '/<%=data.params.user%>/galleries';
+  myForm.action = '/home/users';
   document.body.appendChild(myForm);
   myForm.submit();
   document.body.removeChild(myForm);
 }
+$(document).ready(function(){
+  $("img").mouseover(
+      function () {
+        
+      }
+    );
+});
 </script>
 </head>
 
@@ -274,7 +284,10 @@ il += data.images[i].source.split('/').pop() + '","';
             c++;
 %>
             <a href="<%='/' + data.params.u + '/' + i%>">
-                <img alt="Empty Gallery" src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+            <!--
+                <img title="<%=i%>" src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="z-index:10;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+            -->
+                <img title="<%=i%>" src="" style="z-index:10;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
             </a>
 <%
         }
@@ -288,7 +301,7 @@ il += data.images[i].source.split('/').pop() + '","';
             c++;
 %>
             <a href="<%='/home/' + data.users[i]%>">
-                <img alt="<%data.users[i]%>" src="" style="z-index:100000;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
+                <img alt="<%=data.users[i]%>" title="<%=data.users[i]%>" src="" style="z-index:10;position:absolute;left:<%=300+250*(c % 3)%>px;top:<%=150+150*Math.floor((c-1)/3)%>px;width:210px;height:140px;" />
             </a>
 <%
         }
