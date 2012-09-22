@@ -12,12 +12,12 @@ var express = require('express'),
 	im = require('imagemagick');
 
 //Configure path to ImageMagick
-//im.identify.path = '/usr/bin/identify';
-//im.convert.path = '/usr/bin/convert';
+im.identify.path = '/usr/bin/identify';
+im.convert.path = '/usr/bin/convert';
 
 //Path for OSX
-im.identify.path = '/opt/local/bin/identify';
-im.convert.path = '/opt/local/bin/convert';
+//im.identify.path = '/opt/local/bin/identify';
+//im.convert.path = '/opt/local/bin/convert';
 
 app.use(express.cookieParser());
 app.use(express.session({
@@ -570,7 +570,7 @@ app.post('/users/list/new', function(req, res) {
 						db.close();
 					});
 				}
-				res.redirect('/' + req.body.user + '/galleries/list');
+				res.redirect('/home/' + req.body.user);
 			});
 		});
 	});
@@ -587,11 +587,11 @@ app.post('/users/list/login', function(req, res) {
     				if(document.password == req.body.password) {
                         req.session.user = req.body.user;
                         req.session.password = req.body.password;
-    	                res.redirect('/' + req.body.user + '/galleries/list');
+    	                res.redirect('/home/' + req.body.user);
                         console.log('Correct Password');
     				} else {
                         console.log('Wrong Password');
-                        res.redirect('back');
+                        res.redirect('/home/' + req.body.user);
     				}
     				db.close();
     			});
@@ -604,7 +604,7 @@ app.post('/users/list/logout', function(req, res) {
     console.log('Logout by ' + req.session.user);
     req.session.user = '';
     req.session.password = '';
-    res.redirect('/users/list');
+    res.redirect('/home/users');
 });
 
 app.get('/', function(req, res) {
@@ -708,5 +708,5 @@ app.get('/fbtest2', function(req, res) {
 	});
 });
 
-app.listen(8082);
+app.listen(8080);
 console.log('Started up successfully.');
