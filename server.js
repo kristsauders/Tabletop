@@ -201,7 +201,7 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
 });
 
 app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
-    console.log('gotten background');
+    console.log('got new background');
 	var data = req.body.f1.replace(/^data:image\/\w+;base64,/, "");
 	var buf = new Buffer(data, 'base64');
 	fs.writeFile(__dirname + '/images/' + req.params.user + '-' + req.params.gallery + '-bg.png', buf);
@@ -568,9 +568,11 @@ app.post('/users/list/new', function(req, res) {
                         req.session.user = req.body.user;
                         req.session.password = req.body.password;
 						db.close();
+                        res.redirect('/home/' + req.body.user);
 					});
+				} else {
+                    res.redirect('/home/' + req.body.user);
 				}
-				res.redirect('/home/' + req.body.user);
 			});
 		});
 	});

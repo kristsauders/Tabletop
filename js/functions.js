@@ -370,7 +370,7 @@ function signup() {
     data.password = prompt("Enter password","");
     function signupSuccess() {
     setTimeout(function(){
-		window.location = '/' + data.user + '/galleries/list';
+		window.location = '/home/' + data.user;
 	}, 1000);
     }
     $.ajax({
@@ -420,7 +420,7 @@ function deleteGallery() {
     data.password = prompt("Enter password","");
     function deleteGallery() {
     setTimeout(function(){
-		window.location = '/' + data.user + '/galleries/list';
+		window.location = '/home/' + data.user;
 	}, 1000);
     }
     $.get(
