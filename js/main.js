@@ -408,23 +408,23 @@ function onMenuMouseOut()
 
 function onMenuSave()
 {
+    function successUploadBackground() {
+        alert('Saved!');
+    }
 	setPageScroll();
 	// window.open(canvas.toDataURL('image/png'),'mywindow');
-	flatten();
-	  var myForm = document.createElement("form");
-	  myForm.method="post" ;
-	  myForm.action = document.URL.split('#')[0] + "/uploadBackground";
-	    var myInput = document.createElement("input") ;
-	    var myInput0 = document.createElement("input");
-	    myInput0.setAttribute("name", "type");
-	    myInput0.setAttribute("value", "file");
-	    myForm.appendChild(myInput0);
-	    myInput.setAttribute("name", "f1") ;
-	    myInput.setAttribute("value", flattenCanvas.toDataURL('image/png'));
-	    myForm.appendChild(myInput) ;
-	  document.body.appendChild(myForm) ;
-	  myForm.submit() ;
-	  document.body.removeChild(myForm) ;
+    flatten();
+    var data = new Object();
+    data.f1 = flattenCanvas.toDataURL('image/png');
+    $.ajax({
+      type: 'POST',
+      url: document.URL.split('#')[0] + "/uploadBackground",
+      data: data,
+      success: successUploadBackground(),
+      dataType: 'json',
+      cache: false,
+      async : false
+    });
 	//window.open(flattenCanvas.toDataURL('image/png'),'mywindow');
 }
 
