@@ -187,8 +187,8 @@ function init()
 	window.addEventListener('keyup', onWindowKeyUp, false);
 	window.addEventListener('blur', onWindowBlur, false);
 	
-	canvas.addEventListener('mousedown', onDocumentMouseDown, false);
-	canvas.addEventListener('mouseout', onDocumentMouseOut, false);
+	document.addEventListener('mousedown', onDocumentMouseDown, false);
+	document.addEventListener('mouseout', onDocumentMouseOut, false);
 	
 	document.addEventListener("dragenter", onDocumentDragEnter, false);  
 	document.addEventListener("dragover", onDocumentDragOver, false);
@@ -409,10 +409,10 @@ function onMenuMouseOut()
 function onMenuSave()
 {
     function successUploadBackground() {
-        alert('Saved!');
+        //alert('Saved!');
     }
 	setPageScroll();
-	// window.open(canvas.toDataURL('image/png'),'mywindow');
+	//window.open(canvas.toDataURL('image/png'),'mywindow');
     flatten();
     var data = new Object();
     data.f1 = flattenCanvas.toDataURL('image/png');
@@ -425,7 +425,7 @@ function onMenuSave()
       cache: false,
       async : false
     });
-	//window.open(flattenCanvas.toDataURL('image/png'),'mywindow');
+	window.open(flattenCanvas.toDataURL('image/png'),'mywindow');
 }
 
 function onMenuClear()

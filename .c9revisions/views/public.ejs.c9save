@@ -87,3 +87,4 @@
 {"ts":1348877404354,"patch":[[{"diffs":[[0,"s[i]%>\" "],[1,"title=\"<%=data.users[i]%>\""],[0," src=\"\" "]],"start1":5002,"start2":5002,"length1":16,"length2":42}]],"length":7190,"saved":false}
 {"ts":1348877417273,"patch":[[{"diffs":[[0,"    img["],[-1,"title"],[1,"alt"],[0,"] {\n    "]],"start1":1278,"start2":1278,"length1":21,"length2":19}]],"length":7188,"saved":false}
 {"ts":1348877428993,"patch":[[{"diffs":[[0,"]%>\""],[-1," title=\"<%=data.users[i]%>\""],[0," src"]],"start1":5003,"start2":5003,"length1":35,"length2":8}]],"length":7161,"saved":false}
+{"contributors":[],"silentsave":false,"ts":1348946262117,"patch":[[{"diffs":[[0,"tle>"],[-1,"Krists Auders Photography"],[1,"Photo"],[0," (Be"]],"start1":33,"start2":33,"length1":33,"length2":13}]],"length":7141,"saved":false}
