@@ -623,7 +623,7 @@ app.post('/users/list/new', function(req, res) {
 
 app.post('/users/list/login', function(req, res) {
     console.log('Login by ' + req.body.user);
-    var user = req.body.user.toLowerCase();
+    var user = req.body.user;
     if(user.length>0) {
         db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
