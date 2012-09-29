@@ -373,7 +373,7 @@ function signup() {
     if(data.password) {
         function signupSuccess() {
         setTimeout(function(){
-    		window.location = '/home/' + data.user;
+    		window.location = '/home/' + data.user.toLowerCase();
     	}, 1000);
         }
         $.ajax({
@@ -409,12 +409,12 @@ function newGallery() {
     if(data.gallery) {
         function newGallerySuccess() {
         setTimeout(function(){
-    		window.location = '/' + data.user + '/' + data.gallery;
+    		window.location = '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase();
     	}, 1000);
         }
         $.ajax({
            type: 'POST',
-           url: '/' + data.user + '/galleries/new',
+           url: '/' + data.user.toLowerCase() + '/galleries/new',
            data: data,
            success: newGallerySuccess(data),
            dataType: 'json'
@@ -428,11 +428,11 @@ function deleteGallery() {
     if(data.gallery) {
         function deleteGallerySuccess() {
         setTimeout(function(){
-    		window.location = '/home/' + data.user;
+    		window.location = '/home/' + data.user.toLowerCase();
     	}, 1000);
         }
         $.get(
-           '/' + data.user + '/' + data.gallery + '/delete',
+           '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase() + '/delete',
            function(data) {
     	deleteGallerySuccess();
         });
