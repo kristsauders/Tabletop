@@ -89,7 +89,7 @@ function init()
 	 */
 
 	canvas = document.createElement("canvas");
-	canvas.width = SCREEN_WIDTH-17;
+	canvas.width = SCREEN_WIDTH;
 	canvas.height = SCREEN_HEIGHT;
 	canvas.style.cursor = 'crosshair';
 	container.appendChild(canvas);
@@ -97,7 +97,7 @@ function init()
 	context = canvas.getContext("2d");
 	
 	flattenCanvas = document.createElement("canvas");
-	flattenCanvas.width = SCREEN_WIDTH-17;
+	flattenCanvas.width = SCREEN_WIDTH;
 	flattenCanvas.height = SCREEN_HEIGHT;
 	
 	palette = new Palette();
@@ -134,7 +134,7 @@ function init()
 			localStorageImage.addEventListener("load", function(event)
 			{
 				localStorageImage.removeEventListener(event.type, arguments.callee, false);
-				context.drawImage(localStorageImage,0,0,SCREEN_WIDTH-17,SCREEN_HEIGHT);
+				context.drawImage(localStorageImage,0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
 			}, false);
 			
 			localStorageImage.src = localStorage.canvas;			
@@ -187,8 +187,8 @@ function init()
 	window.addEventListener('keyup', onWindowKeyUp, false);
 	window.addEventListener('blur', onWindowBlur, false);
 	
-	document.addEventListener('mousedown', onDocumentMouseDown, false);
-	document.addEventListener('mouseout', onDocumentMouseOut, false);
+	canvas.addEventListener('mousedown', onDocumentMouseDown, false);
+	canvas.addEventListener('mouseout', onDocumentMouseOut, false);
 	
 	document.addEventListener("dragenter", onDocumentDragEnter, false);  
 	document.addEventListener("dragover", onDocumentDragOver, false);
@@ -433,7 +433,7 @@ function onMenuClear()
 	if (!confirm("Are you sure?"))
 		return;
 		
-	context.clearRect(0, 0, SCREEN_WIDTH-17, SCREEN_HEIGHT);
+	context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	saveToLocalStorage();
 
@@ -497,6 +497,7 @@ function onCanvasMouseUp()
 		clearTimeout(saveTimeOut);
 		saveTimeOut = setTimeout(saveToLocalStorage, 2000, true);
 	}
+    
 }
 
 
@@ -536,6 +537,7 @@ function onCanvasTouchEnd( event )
 
 		window.removeEventListener('touchmove', onCanvasTouchMove, false);
 		window.removeEventListener('touchend', onCanvasTouchEnd, false);
+
 	}
 }
 

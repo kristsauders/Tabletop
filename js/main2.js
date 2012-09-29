@@ -89,7 +89,7 @@ function init()
 	 */
 
 	canvas = document.createElement("canvas");
-	canvas.width = SCREEN_WIDTH-17;
+	canvas.width = SCREEN_WIDTH;
 	canvas.height = SCREEN_HEIGHT;
 	canvas.style.cursor = 'crosshair';
 	container.appendChild(canvas);
@@ -97,7 +97,7 @@ function init()
 	context = canvas.getContext("2d");
 	
 	flattenCanvas = document.createElement("canvas");
-	flattenCanvas.width = SCREEN_WIDTH-17;
+	flattenCanvas.width = SCREEN_WIDTH;
 	flattenCanvas.height = SCREEN_HEIGHT;
 	
 	palette = new Palette();
@@ -134,7 +134,7 @@ function init()
 			localStorageImage.addEventListener("load", function(event)
 			{
 				localStorageImage.removeEventListener(event.type, arguments.callee, false);
-				context.drawImage(localStorageImage,0,0,SCREEN_WIDTH-17,SCREEN_HEIGHT);
+				context.drawImage(localStorageImage,0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
 			}, false);
 			
 			localStorageImage.src = localStorage.canvas;			
@@ -430,7 +430,7 @@ function onMenuClear()
 	if (!confirm("Are you sure?"))
 		return;
 		
-	context.clearRect(0, 0, SCREEN_WIDTH-17, SCREEN_HEIGHT);
+	context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	saveToLocalStorage();
 

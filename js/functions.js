@@ -7,13 +7,15 @@ function login() {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
-    $.ajax({
-       type: 'POST',
-       url: '/users/list/login',
-       data: data,
-       success: loginSuccess(),
-       dataType: 'json'
-    });
+    if(data.password) {
+        $.ajax({
+           type: 'POST',
+           url: '/users/list/login',
+           data: data,
+           success: loginSuccess(),
+           dataType: 'json'
+        });
+    }
 }
 
 function logoutSuccess() {
@@ -368,67 +370,87 @@ function signup() {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
-    function signupSuccess() {
-    setTimeout(function(){
-		window.location = '/home/' + data.user;
-	}, 1000);
+    if(data.password) {
+        function signupSuccess() {
+        setTimeout(function(){
+    		window.location = '/home/' + data.user;
+    	}, 1000);
+        }
+        $.ajax({
+           type: 'POST',
+           url: '/users/list/new',
+           data: data,
+           success: signupSuccess(),
+           dataType: 'json'
+        });
     }
-    $.ajax({
-       type: 'POST',
-       url: '/users/list/new',
-       data: data,
-       success: signupSuccess(),
-       dataType: 'json'
-    });
 }
 function deleteAccount() {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
-    function deleteUser() {
-    setTimeout(function(){
-		window.location = '/';
-	}, 1000);
+    if(data.password) {
+        function deleteUserSuccess() {
+        setTimeout(function(){
+    		window.location = '/';
+    	}, 1000);
+        }
+        $.get(
+           '/users/list/account/delete/' + data.user,
+           function(data) {
+    	deleteUserSuccess();
+        });
     }
-    $.get(
-       '/users/list/account/delete/' + data.user,
-       function(data) {
-	deleteUser();
-    });
 }
 function newGallery() {
     var data = new Object();
-    data.user = prompt("Enter username","");
+    data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = prompt("Enter gallery name","");
-    function newGallerySuccess() {
-    setTimeout(function(){
-		window.location = '/' + data.user + '/' + data.gallery;
-	}, 1000);
+    if(data.gallery) {
+        function newGallerySuccess() {
+        setTimeout(function(){
+    		window.location = '/' + data.user + '/' + data.gallery;
+    	}, 1000);
+        }
+        $.ajax({
+           type: 'POST',
+           url: '/' + data.user + '/galleries/new',
+           data: data,
+           success: newGallerySuccess(data),
+           dataType: 'json'
+        });
     }
-    $.ajax({
-       type: 'POST',
-       url: '/' + data.user + '/galleries/new',
-       data: data,
-       success: newGallerySuccess(data),
-       dataType: 'json'
-    });
 }
 function deleteGallery() {
     var data = new Object();
-    data.user = prompt("Enter username","");
+    data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = prompt("Enter gallery","");
-    data.password = prompt("Enter password","");
-    function deleteGallery() {
-    setTimeout(function(){
-		window.location = '/home/' + data.user;
-	}, 1000);
+    if(data.gallery) {
+        function deleteGallerySuccess() {
+        setTimeout(function(){
+    		window.location = '/home/' + data.user;
+    	}, 1000);
+        }
+        $.get(
+           '/' + data.user + '/' + data.gallery + '/delete',
+           function(data) {
+    	deleteGallerySuccess();
+        });
     }
-    $.get(
-       '/' + data.user + '/' + data.gallery + '/delete',
-       function(data) {
-	deleteGallery();
-    });
 }
 function drawImage() {
     window.open(document.URL.split('#')[0].split('?')[0] + '/draw','_blank','location=0,width=900,height=600');
 }
+$(document).ready(function(){
+  $(".gridImg").hover(
+      function () {
+        $(this).css('opacity','0');
+        var a = $(this).attr('alt');
+        $(this).parent().append('<div class="imgTitle" style="z-index:9;font-size:3em;position:absolute;left:' + $(this).css('left') + ';top:' + $(this).css('top') + ';">' + a + '</div>');
+      }, function() {
+          
+          $(this).css('opacity', '1');
+          $(this).next().remove('.imgTitle');
+      }
+    );
+});

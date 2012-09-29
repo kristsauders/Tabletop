@@ -12,12 +12,12 @@ var express = require('express'),
 	im = require('imagemagick');
 
 //Configure path to ImageMagick
-im.identify.path = '/usr/bin/identify';
-im.convert.path = '/usr/bin/convert';
+//im.identify.path = '/usr/bin/identify';
+//im.convert.path = '/usr/bin/convert';
 
 //Path for OSX
-//im.identify.path = '/opt/local/bin/identify';
-//im.convert.path = '/opt/local/bin/convert';
+im.identify.path = '/opt/local/bin/identify';
+im.convert.path = '/opt/local/bin/convert';
 
 app.use(express.cookieParser());
 app.use(express.session({
@@ -220,55 +220,55 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
     }
 });
 
-app.post('/:user/:gallery/photos/newlink', function(req, res, next) {
-    console.log('got new link photo');
-    if(req.session.user==req.params.user) {
-        im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', req.files.image.path.split('.')[0] + '-medium.jpg'], function(err) {
-            if (err) throw err;
-    	});
-        
-        im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', req.files.image.path.split('.')[0] + '-large.jpg'], function(err) {
-            if (err) throw err;
-    	});
-        
-    	im.convert([req.files.image.path, '-quality', '50', '-resize', '400x400\>', req.files.image.path.split('.')[0] + '-small.jpg'], function(err) {
-    		if (err) throw err;
-    		db.open(function(err, db) {
-    			db.collection('users', function(err, collection) {
-    				collection.findOne({
-    					"user": req.params.user
-    				}, function(err, document) {
-    					var gal = document.galleries[req.params.gallery];
-    					var p = 0;
-    					for (var i in gal) p += 1;
-    					gal[p] = new Object();
-    					gal[p].source = '/images/' + req.files.image.path.split('/').pop()+'.jpg';;
-    					gal[p].top = Math.floor(Math.random() * 701);
-    					gal[p].left = Math.floor(Math.random() * 901);
-    					gal[p].link = req.body.link;
-    					im.identify(req.files.image.path, function(err, features) {
-    						var ratio = features.width / features.height;
-    						gal[p].width = Math.round(Math.random() * 100) + 150;
-    						gal[p].height = Math.round(gal[p].width / ratio);
-    						document.galleries[req.params.gallery] = gal;
-    						collection.update({
-    							"user": req.params.user
-    						}, document, {
-    							upsert: true,
-    							safe: true
-    						}, function(err, document) {
-    							db.close();
-    							res.redirect('back');
-    						});
-    					});
-    				});
-    			});
-    		});
-    	});
-    } else {
-        res.send('Sorry, but you do not have access to upload photos to this gallery.');
-    }
-});
+//app.post('/:user/:gallery/photos/newlink', function(req, res, next) {
+//    console.log('got new link photo');
+//    if(req.session.user==req.params.user) {
+//        im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', req.files.image.path.split('.')[0] + '-medium.jpg'], function(err) {
+//            if (err) throw err;
+//    	});
+//        
+//        im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', req.files.image.path.split('.')[0] + '-large.jpg'], function(err) {
+//            if (err) throw err;
+//    	});
+//        
+//    	im.convert([req.files.image.path, '-quality', '50', '-resize', '400x400\>', req.files.image.path.split('.')[0] + '-small.jpg'], function(err) {
+//    		if (err) throw err;
+//    		db.open(function(err, db) {
+//    			db.collection('users', function(err, collection) {
+//    				collection.findOne({
+//    					"user": req.params.user
+//    				}, function(err, document) {
+//    					var gal = document.galleries[req.params.gallery];
+//    					var p = 0;
+//    					for (var i in gal) p += 1;
+//    					gal[p] = new Object();
+//    					gal[p].source = '/images/' + req.files.image.path.split('/').pop()+'.jpg';;
+//    					gal[p].top = Math.floor(Math.random() * 701);
+//    					gal[p].left = Math.floor(Math.random() * 901);
+//    					gal[p].link = req.body.link;
+//    					im.identify(req.files.image.path, function(err, features) {
+//    						var ratio = features.width / features.height;
+//    						gal[p].width = Math.round(Math.random() * 100) + 150;
+//    						gal[p].height = Math.round(gal[p].width / ratio);
+//    						document.galleries[req.params.gallery] = gal;
+//    						collection.update({
+//    							"user": req.params.user
+//    						}, document, {
+//    							upsert: true,
+//    							safe: true
+//    						}, function(err, document) {
+//    							db.close();
+//    							res.redirect('back');
+//    						});
+//    					});
+//    				});
+//    			});
+//    		});
+//    	});
+//    } else {
+//        res.send('Sorry, but you do not have access to upload photos to this gallery.');
+//    }
+//});
 
 app.get('/home/:user', function(req, res) {
     //req.session.user = 'krists';
