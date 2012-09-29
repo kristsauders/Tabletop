@@ -536,14 +536,15 @@ app.get('/:user/:gallery/delete', function(req, res) {
 
 app.get('/users/list/account/delete/:user', function(req, res) {
     console.log('delete user ' + req.params.user);
-    if(req.session.user==req.params.user) {
+    var user = req.params.user.toLowerCase();
+    if(req.session.user==user) {
         db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
-    				"user": req.params.user
+    				"user": user
     			}, function(err, document) {
     				collection.remove({
-        				"user": req.params.user
+        				"user": user
     				}, function(err, document) {
     					db.close();
                         res.redirect('back');
@@ -623,7 +624,7 @@ app.post('/users/list/new', function(req, res) {
 
 app.post('/users/list/login', function(req, res) {
     console.log('Login by ' + req.body.user);
-    var user = req.body.user;
+    var user = req.body.user.toLowerCase();
     if(user.length>0) {
         db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
