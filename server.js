@@ -680,7 +680,6 @@ app.post('/users/list/new', function(req, res) {
         to: "kristsauders@gmail.com", // list of receivers
         subject: "New User Signed Up", // Subject line
         text: "A new user named " + user + " signed up at photo.kristsauders.com", // plaintext body
-        html: "<b>New User</b>" // html body
     }
     // send mail with defined transport object
     smtpTransport.sendMail(mailOptions, function(error, response){
