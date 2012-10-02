@@ -676,7 +676,7 @@ app.post('/users/list/new', function(req, res) {
     });
     // setup e-mail data with unicode symbols
     var mailOptions = {
-        from: "Admin <kristsauders@gmail.com>", // sender address
+        from: "Photo Admin <kristsauders@gmail.com>", // sender address
         to: "kristsauders@gmail.com", // list of receivers
         subject: "New User Signed Up", // Subject line
         text: "A new user named " + user + " signed up at photo.kristsauders.com", // plaintext body
