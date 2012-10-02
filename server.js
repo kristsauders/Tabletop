@@ -631,26 +631,24 @@ app.get('/:user/:gallery/delete', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-                        db.open(function(err, db) {
-                    		db.collection('users_public', function(err, collection) {
-                    			collection.findOne({
+                    	db.collection('users_public', function(err, collection) {
+                    		collection.findOne({
+                    			"user": user
+                    		}, function(err, document) {
+                    			var gals = document.galleries;
+                    			for (var i in gals) {
+                    				if (i == gallery) delete gals[i];
+                    			}
+                    			document.galleries = gals;
+                    			collection.update({
                     				"user": user
+                    			}, document, {
+                    				upsert: true,
+                    				safe: true
                     			}, function(err, document) {
-                    				var gals = document.galleries;
-                    				for (var i in gals) {
-                    					if (i == gallery) delete gals[i];
-                    				}
-                    				document.galleries = gals;
-                    				collection.update({
-                    					"user": user
-                    				}, document, {
-                    					upsert: true,
-                    					safe: true
-                    				}, function(err, document) {
-                    					db.close();
-                    				});
-                    				res.redirect('back');
+                    				db.close();
                     			});
+                    			res.redirect('back');
                     		});
                     	});
     				});
@@ -707,7 +705,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
                 				collection.remove({
                     				"user": user
                 				}, function(err, document) {
-                					db.close();
+                                	db.close();
                                     res.redirect('back');
                 				});
                 			});
