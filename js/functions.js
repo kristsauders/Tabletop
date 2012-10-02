@@ -453,6 +453,21 @@ function publishGallery() {
        dataType: 'json'
     });
 }
+function unpublishGallery() {
+    var data = new Object();
+    function unpublishGallerySuccess() {
+    setTimeout(function(){
+        window.location = document.URL.split('#')[0].split('?')[0];
+    }, 1000);
+    }
+    $.ajax({
+       type: 'POST',
+       url: document.URL.split('#')[0].split('?')[0] + '/unpublish',
+       data: data,
+       success: unpublishGallerySuccess(),
+       dataType: 'json'
+    });
+}
 function drawImage() {
     window.open(document.URL.split('#')[0].split('?')[0] + '/draw','_blank','location=0,width=900,height=600');
 }

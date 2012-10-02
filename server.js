@@ -6,20 +6,18 @@ var express = require('express'),
 	url = require("url"),
 	fs = require('fs'),
 	sys = require('sys'),
-	db = new mongo.Db('tabletop', new mongo.Server("127.0.0.1", 27017, {
-		auto_reconnect: true
-	}), {}),
     MongoStore = require('connect-mongo')(express),
     nodemailer = require("nodemailer"),
+    config = require('./config.js'),
 	im = require('imagemagick');
+    
+var db = new mongo.Db('tabletop', new mongo.Server(config.db.url, config.db.prt, {
+    	auto_reconnect: true
+	}), {});
 
 //Configure path to ImageMagick
-im.identify.path = '/usr/bin/identify';
-im.convert.path = '/usr/bin/convert';
-
-//Path for OSX
-//im.identify.path = '/opt/local/bin/identify';
-//im.convert.path = '/opt/local/bin/convert';
+im.identify.path = config.im.identify;
+im.convert.path = config.im.convert;
 
 app.use(express.cookieParser());
 app.use(express.session({
@@ -68,12 +66,11 @@ app.post('/:user/:gallery/publish', function(req, res) {
             					upsert: true,
             					safe: true
             				}, function(err, document) {
+                                db.close();
+                                res.redirect('back');
                                 fs.readFile(__dirname + '/images/' + user + '-' + gallery + '-bg.png', function (err, data) {
                                   if (err) throw err;
-                                  fs.writeFile(__dirname + '/images/' + user + '-' + gallery + '-bg-public.png', data, function(err) {
-                                        db.close();
-                                        res.redirect('back');
-                                      });
+                                  fs.writeFile(__dirname + '/images/' + user + '-' + gallery + '-bg-public.png', data);
                                 });
             				});
             			});
@@ -83,6 +80,38 @@ app.post('/:user/:gallery/publish', function(req, res) {
     	});
     } else {
         res.send('Sorry, but you do not have access to publish this gallery.');
+    }
+});
+
+app.post('/:user/:gallery/unpublish', function(req, res) {
+    var user = req.params.user.toLowerCase();
+    console.log('Got unpublish request for user ' + req.params.user + ' and gallery ' + req.params.gallery);
+    if(req.session.user==user) {
+        var gallery = req.params.gallery.toLowerCase();
+        db.open(function(err, db) {
+    		db.collection('users_public', function(err, collection) {
+    			collection.findOne({
+    				"user": user
+    			}, function(err, document) {
+    				var gals = document.galleries;
+    				for (var i in gals) {
+    					if (i == gallery) delete gals[i];
+    				}
+    				document.galleries = gals;
+    				collection.update({
+    					"user": user
+    				}, document, {
+    					upsert: true,
+    					safe: true
+    				}, function(err, document) {
+    					db.close();
+    				});
+    				res.redirect('back');
+    			});
+    		});
+    	});
+    } else {
+        res.send('Sorry, but you do not have access to manage these galleries.');
     }
 });
 
@@ -317,7 +346,7 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
 //});
 
 app.get('/home/:user', function(req, res) {
-    if (req.session.user == 'home') {
+    if ((req.session.user == 'home') || (req.session.user == req.params.user.toLowerCase())) {
         db.open(function(err, db) {
             db.collection('users', function(err, collection) {
                 var users = new Array();
@@ -334,17 +363,28 @@ app.get('/home/:user', function(req, res) {
                     if(req.params.user=='users') gallery = 'users';
                     if(req.params.user=='galleries') u = 'galleries';
         			if (document[k].galleries[gallery]) {
-        				res.render('index', {
-        					layout: false,
-        					data: {
-        						images: document[k].galleries[gallery],
-        						params: {'user':'home','gallery':gallery, 'u': u},
-                                galleries: document[j].galleries,
-                                users: users
-        					}
-        				});
-        			}
-        		else res.send('User does not exist!');
+                        if (req.session.user == 'home') {
+            				res.render('index', {
+            					layout: false,
+            					data: {
+            						images: document[k].galleries[gallery],
+            						params: {'user':'home','gallery':gallery, 'u': u},
+                                    galleries: document[j].galleries,
+                                    users: users
+            					}
+            				});
+                        } else {
+                            res.render('public', {
+                				layout: false,
+            					data: {
+            						images: document[k].galleries[gallery],
+            						params: {'user':'home','gallery':gallery, 'u': u},
+                                    galleries: document[j].galleries,
+                                    users: users
+            					}
+            				});
+                        }
+        			} else res.send('User does not exist!');
         		db.close();
     			});
     		});
@@ -399,7 +439,7 @@ app.get('/:user/:gallery', function(req, res) {
     							layout: false,
     							data: {
     								images: document.galleries[gallery],
-    								params: req.params.toLowerCase()
+    								params: req.params
     							}
     						});
     					}
@@ -422,7 +462,7 @@ app.get('/:user/:gallery', function(req, res) {
     							layout: false,
     							data: {
     								images: document.galleries[gallery],
-    								params: req.params.toLowerCase()
+    								params: req.params
     							}
     						});
     					}
@@ -591,7 +631,28 @@ app.get('/:user/:gallery/delete', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-    					db.close();
+                        db.open(function(err, db) {
+                    		db.collection('users_public', function(err, collection) {
+                    			collection.findOne({
+                    				"user": user
+                    			}, function(err, document) {
+                    				var gals = document.galleries;
+                    				for (var i in gals) {
+                    					if (i == gallery) delete gals[i];
+                    				}
+                    				document.galleries = gals;
+                    				collection.update({
+                    					"user": user
+                    				}, document, {
+                    					upsert: true,
+                    					safe: true
+                    				}, function(err, document) {
+                    					db.close();
+                    				});
+                    				res.redirect('back');
+                    			});
+                    		});
+                    	});
     				});
     				res.redirect('back');
     			});
@@ -749,8 +810,8 @@ app.post('/users/list/new', function(req, res) {
     var smtpTransport = nodemailer.createTransport("SMTP",{
         service: "Gmail",
         auth: {
-            user: "kristsauders@gmail.com",
-            pass: ""
+            user: config.email.username,
+            pass: config.email.password
         }
     });
     // setup e-mail data with unicode symbols
@@ -905,5 +966,5 @@ app.get('/fbtest2', function(req, res) {
 	});
 });
 
-app.listen(8080);
+app.listen(config.app.prt);
 console.log('Started up successfully.');
