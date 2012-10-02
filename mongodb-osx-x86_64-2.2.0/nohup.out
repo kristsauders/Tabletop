@@ -5163,3 +5163,5 @@ Mon Oct  1 17:28:45 [conn57] end connection 127.0.0.1:62731 (1 connection now op
 Mon Oct  1 17:28:52 [conn111] end connection 127.0.0.1:63227 (0 connections now open)
 Mon Oct  1 17:29:13 [initandlisten] connection accepted from 127.0.0.1:63261 #132 (1 connection now open)
 Mon Oct  1 17:29:13 [conn132] end connection 127.0.0.1:63261 (0 connections now open)
+Mon Oct  1 17:35:59 [DataFileSync] flushing mmaps took 33991ms  for 8 files
+Tue Oct  2 10:10:25 [PeriodicTask::Runner] task: DBConnectionPool-cleaner took: 4ms

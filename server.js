@@ -10,6 +10,7 @@ var express = require('express'),
 		auto_reconnect: true
 	}), {}),
     MongoStore = require('connect-mongo')(express),
+    sendmail = require('sendmail')(),
 	im = require('imagemagick');
 
 //Configure path to ImageMagick
@@ -664,6 +665,16 @@ app.post('/users/list/new', function(req, res) {
 			});
 		});
 	});
+    //Send e-mail to admin
+    sendmail({
+        from: 'no-reply@photo.kristsauders.com',
+        to: 'kristsauders@gmail.com, ka0565@att.com',
+        subject: 'New Photo User',
+        content: 'A new user named ' + user + ' just signed up at photo.kristsauders.com',
+      }, function(err, reply) {
+        console.log(err && err.stack);
+        console.dir(reply);
+    });
 });
 
 app.post('/users/list/login', function(req, res) {
