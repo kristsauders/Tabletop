@@ -652,7 +652,6 @@ app.get('/:user/:gallery/delete', function(req, res) {
                     		});
                     	});
     				});
-    				res.redirect('back');
     			});
     		});
     	});
