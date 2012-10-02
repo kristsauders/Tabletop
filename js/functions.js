@@ -438,6 +438,21 @@ function deleteGallery() {
         });
     }
 }
+function publishGallery() {
+    var data = new Object();
+    function publishGallerySuccess() {
+    setTimeout(function(){
+    	window.location = document.URL.split('#')[0].split('?')[0];
+    }, 1000);
+    }
+    $.ajax({
+       type: 'POST',
+       url: document.URL.split('#')[0].split('?')[0] + '/publish',
+       data: data,
+       success: publishGallerySuccess(),
+       dataType: 'json'
+    });
+}
 function drawImage() {
     window.open(document.URL.split('#')[0].split('?')[0] + '/draw','_blank','location=0,width=900,height=600');
 }
@@ -446,7 +461,7 @@ $(document).ready(function(){
       function () {
         $(this).css('opacity','0');
         var a = $(this).attr('alt');
-        $(this).parent().append('<div class="imgTitle" style="z-index:9;font-size:3em;position:absolute;left:' + $(this).css('left') + ';top:' + $(this).css('top') + ';">' + a + '</div>');
+        $(this).parent().append('<div class="imgTitle" style="border:1px solid white;z-index:9;font-size:3em;position:absolute;width:' + $(this).css('width') + ';height:' + $(this).css('height') + ';left:' + $(this).css('left') + ';top:' + $(this).css('top') + ';">' + a + '</div>');
       }, function() {
           
           $(this).css('opacity', '1');

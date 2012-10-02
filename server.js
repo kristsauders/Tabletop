@@ -45,6 +45,41 @@ app.get('/:user/:gallery/draw', function(req, res) {
 	});
 });
 
+app.post('/:user/:gallery/publish', function(req, res) {
+    console.log('Got publish request for user ' + req.params.user + ' and gallery ' + req.params.gallery);
+    var user = req.params.user.toLowerCase();
+    var gallery = req.params.gallery.toLowerCase();
+    if(req.session.user==user) {
+        db.open(function(err, db) {
+    		db.collection('users', function(err, collection) {
+    			collection.findOne({
+    				"user": user
+    			}, function(err, document) {
+    				var gal = document.galleries[gallery];
+        			db.collection('users_public', function(err, collection) {
+                		collection.findOne({
+            				"user": user
+            			}, function(err, document) {
+            				document.galleries[gallery] = gal;
+            				collection.update({
+            					"user": user
+            				}, document, {
+            					upsert: true,
+            					safe: true
+            				}, function(err, document) {
+            					db.close();
+                                res.redirect('back');
+            				});
+            			});
+        			});
+    			});
+    		});
+    	});
+    } else {
+        res.send('Sorry, but you do not have access to publish this gallery.');
+    }
+});
+
 //app.get('/:user/:gallery/photos/new', function(req, res) {
 //    console.log('got new photo get');
 //	res.send('<form method="post" enctype="multipart/form-data">' + '<p>Image: <input type="file" name="image" multiple/></p>' + '<p><input type="submit" value="Upload" /></p>' + '</form>');
@@ -354,11 +389,12 @@ app.get('/:user/:gallery', function(req, res) {
 
 app.post('/:user/:gallery/upsert', function(req, res) {
     console.log('Coords update');
-    if(req.session.user==req.params.user) {
+    var user = req.params.user.toLowerCase();
+    if(req.session.user==user) {
     	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
-    				"user": req.params.user
+    				"user": user
     			}, function(err, document) {
     				var gal = document.galleries[req.params.gallery];
     				var p = 0;
@@ -378,7 +414,7 @@ app.post('/:user/:gallery/upsert', function(req, res) {
     				gal[p].z = req.body.z;
     				document.galleries[req.params.gallery] = gal;
     				collection.update({
-    					"user": req.params.user
+    					"user": user
     				}, document, {
     					upsert: true,
     					safe: true
@@ -396,11 +432,12 @@ app.post('/:user/:gallery/upsert', function(req, res) {
 
 app.post('/:user/:gallery/updateLink', function(req, res) {
     console.log('Link update');
-    if(req.session.user==req.params.user) {
+    var user = req.params.user.toLowerCase();
+    if(req.session.user==user) {
         db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
-    				"user": req.params.user
+    				"user": user
     			}, function(err, document) {
     				var gal = document.galleries[req.params.gallery];
     				var p = 0;
@@ -415,7 +452,7 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
     				gal[p].link = req.body.link;
     				document.galleries[req.params.gallery] = gal;
     				collection.update({
-    					"user": req.params.user
+    					"user": user
     				}, document, {
     					upsert: true,
     					safe: true
@@ -433,11 +470,12 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
 
 app.post('/:user/:gallery/photos/delete', function(req, res) {
     console.log('delete photo');
-    if(req.session.user==req.params.user) {
+    var user = req.params.user.toLowerCase();
+    if(req.session.user==user) {
     	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
-    				"user": req.params.user
+    				"user": user
     			}, function(err, document) {
     				var gal = document.galleries[req.params.gallery];
     				var p = 0;
@@ -468,7 +506,7 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
     				}
     				document.galleries[req.params.gallery] = gal;
     				collection.update({
-    					"user": req.params.user
+    					"user": user
     				}, document, {
     					upsert: true,
     					safe: true
@@ -485,12 +523,13 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
 });
 
 app.get('/:user/:gallery/delete', function(req, res) {
-    if(req.session.user==req.params.user) {
+    var user = req.params.user.toLowerCase();
+    if(req.session.user==user) {
         var gallery = req.params.gallery.toLowerCase();
     	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
-    				"user": req.params.user
+    				"user": user
     			}, function(err, document) {
     				var gals = document.galleries;
     				for (var i in gals) {
@@ -498,7 +537,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
     				}
     				document.galleries = gals;
     				collection.update({
-    					"user": req.params.user
+    					"user": user
     				}, document, {
     					upsert: true,
     					safe: true
