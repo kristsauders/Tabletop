@@ -10,7 +10,7 @@ var express = require('express'),
 		auto_reconnect: true
 	}), {}),
     MongoStore = require('connect-mongo')(express),
-    sendmail = require('sendmail')(),
+    nodemailer = require("nodemailer"),
 	im = require('imagemagick');
 
 //Configure path to ImageMagick
@@ -666,14 +666,31 @@ app.post('/users/list/new', function(req, res) {
 		});
 	});
     //Send e-mail to admin
-    sendmail({
-        from: 'no-reply@photo.kristsauders.com',
-        to: 'kristsauders@gmail.com, ka0565@att.com',
-        subject: 'New Photo User',
-        content: 'A new user named ' + user + ' just signed up at photo.kristsauders.com',
-      }, function(err, reply) {
-        console.log(err && err.stack);
-        console.dir(reply);
+    // create reusable transport method (opens pool of SMTP connections)
+    var smtpTransport = nodemailer.createTransport("SMTP",{
+        service: "Gmail",
+        auth: {
+            user: "kristsauders@gmail.com",
+            pass: ""
+        }
+    });
+    // setup e-mail data with unicode symbols
+    var mailOptions = {
+        from: "Admin <kristsauders@gmail.com>", // sender address
+        to: "kristsauders@gmail.com", // list of receivers
+        subject: "New User Signed Up", // Subject line
+        text: "A new user named " + user + " signed up at photo.kristsauders.com", // plaintext body
+        html: "<b>New User</b>" // html body
+    }
+    // send mail with defined transport object
+    smtpTransport.sendMail(mailOptions, function(error, response){
+        if(error){
+            console.log(error);
+        }else{
+            console.log("Message sent: " + response.message);
+        }
+    
+        smtpTransport.close(); // shut down the connection pool, no more messages
     });
 });
 
