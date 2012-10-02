@@ -68,8 +68,13 @@ app.post('/:user/:gallery/publish', function(req, res) {
             					upsert: true,
             					safe: true
             				}, function(err, document) {
-            					db.close();
-                                res.redirect('back');
+                                fs.readFile(__dirname + '/images/' + user + '-' + gallery + '-bg.png', function (err, data) {
+                                  if (err) throw err;
+                                  fs.writeFile(__dirname + '/images/' + user + '-' + gallery + '-bg-public.png', data, function(err) {
+                                        db.close();
+                                        res.redirect('back');
+                                      });
+                                });
             				});
             			});
         			});
@@ -312,80 +317,123 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
 //});
 
 app.get('/home/:user', function(req, res) {
-    //req.session.user = 'krists';
-    db.open(function(err, db) {
-    	db.collection('users', function(err, collection) {
-            var users = new Array();
-            collection.find().toArray(function(err, document) {
-                var j = 0;
-                var k = 0;
-    			for (var i = 0; i < document.length; i++) {
-					users[i] = document[i].user;
-                    if(document[i].user==req.params.user) j = i;
-                    if((document[i].user=='home')) k = i;
-				}
-                var u = req.params.user;
-                var gallery = 'galleries';
-                if(req.params.user=='users') gallery = 'users';
-                if(req.params.user=='galleries') u = 'galleries';
-    			if (document[k].galleries[gallery]) {
-    				if (req.session.user == 'home') res.render('index', {
-    					layout: false,
-    					data: {
-    						images: document[k].galleries[gallery],
-    						params: {'user':'home','gallery':gallery, 'u': u},
-                            galleries: document[j].galleries,
-                            users: users
-    					}
-    				});
-    				else res.render('public', {
-    					layout: false,
-    					data: {
-    						images: document[k].galleries[gallery],
-        					params: {'user':'home','gallery':gallery, 'u': u},
-                            galleries: document[j].galleries,
-                            users: users
-    					}
-    				});
-    			}
-    		else res.send('User does not exist!');
-    		db.close();
-			});
-		});
-	});
+    if (req.session.user == 'home') {
+        db.open(function(err, db) {
+            db.collection('users', function(err, collection) {
+                var users = new Array();
+                collection.find().toArray(function(err, document) {
+                    var j = 0;
+                    var k = 0;
+        			for (var i = 0; i < document.length; i++) {
+    					users[i] = document[i].user;
+                        if(document[i].user==req.params.user) j = i;
+                        if((document[i].user=='home')) k = i;
+    				}
+                    var u = req.params.user.toLowerCase();
+                    var gallery = 'galleries';
+                    if(req.params.user=='users') gallery = 'users';
+                    if(req.params.user=='galleries') u = 'galleries';
+        			if (document[k].galleries[gallery]) {
+        				res.render('index', {
+        					layout: false,
+        					data: {
+        						images: document[k].galleries[gallery],
+        						params: {'user':'home','gallery':gallery, 'u': u},
+                                galleries: document[j].galleries,
+                                users: users
+        					}
+        				});
+        			}
+        		else res.send('User does not exist!');
+        		db.close();
+    			});
+    		});
+    	});
+    } else {
+        db.open(function(err, db) {
+            db.collection('users_public', function(err, collection) {
+                var users = new Array();
+                collection.find().toArray(function(err, document) {
+                    var j = 0;
+                    var k = 0;
+            		for (var i = 0; i < document.length; i++) {
+    					users[i] = document[i].user;
+                        if(document[i].user==req.params.user) j = i;
+                        if((document[i].user=='home')) k = i;
+    				}
+                    var u = req.params.user.toLowerCase();
+                    var gallery = 'galleries';
+                    if(req.params.user=='users') gallery = 'users';
+                    if(req.params.user=='galleries') u = 'galleries';
+        			if (document[k].galleries[gallery]) {
+        				res.render('public', {
+        					layout: false,
+        					data: {
+        						images: document[k].galleries[gallery],
+            					params: {'user':'home','gallery':gallery, 'u': u},
+                                galleries: document[j].galleries,
+                                users: users
+        					}
+        				});
+        			}
+        		else res.send('User does not exist!');
+        		db.close();
+    			});
+    		});
+    	});
+    }
 });
 
 app.get('/:user/:gallery', function(req, res) {
-    //req.session.user = 'krists';
-	db.open(function(err, db) {
-		db.collection('users', function(err, collection) {
-			collection.findOne({
-				"user": req.params.user
-			}, function(err, document) {
-				if (document) {
-					if (document.galleries[req.params.gallery]) {
-						if (req.session.user == req.params.user) res.render('index', {
-							layout: false,
-							data: {
-								images: document.galleries[req.params.gallery],
-								params: req.params
-							}
-						});
-						else res.render('public', {
-							layout: false,
-							data: {
-								images: document.galleries[req.params.gallery],
-								params: req.params
-							}
-						});
-					}
-					else res.send('Gallery does not exist!');
-				}
-				else res.send('User does not exist!');
-				db.close();
-			});
-		});
-	});
+    var user = req.params.user.toLowerCase();
+    var gallery = req.params.gallery.toLowerCase();
+    if (req.session.user == user) {
+        db.open(function(err, db) {
+    		db.collection('users', function(err, collection) {
+    			collection.findOne({
+    				"user": user
+    			}, function(err, document) {
+    				if (document) {
+    					if (document.galleries[gallery]) {
+    						res.render('index', {
+    							layout: false,
+    							data: {
+    								images: document.galleries[gallery],
+    								params: req.params.toLowerCase()
+    							}
+    						});
+    					}
+    					else res.send('Gallery does not exist!');
+    				}
+    				else res.send('User does not exist!');
+    				db.close();
+    			});
+    		});
+    	});
+    } else {
+        db.open(function(err, db) {
+        	db.collection('users_public', function(err, collection) {
+    			collection.findOne({
+    				"user": user
+    			}, function(err, document) {
+    				if (document) {
+    					if (document.galleries[gallery]) {
+    						res.render('public', {
+    							layout: false,
+    							data: {
+    								images: document.galleries[gallery],
+    								params: req.params.toLowerCase()
+    							}
+    						});
+    					}
+    					else res.send('Gallery does not exist!');
+    				}
+    				else res.send('User does not exist!');
+    				db.close();
+    			});
+    		});
+    	});
+    }
 });
 
 app.post('/:user/:gallery/upsert', function(req, res) {
@@ -591,8 +639,18 @@ app.get('/users/list/account/delete/:user', function(req, res) {
     				collection.remove({
         				"user": user
     				}, function(err, document) {
-    					db.close();
-                        res.redirect('back');
+                    	db.collection('users_public', function(err, collection) {
+                			collection.findOne({
+                				"user": user
+                			}, function(err, document) {
+                				collection.remove({
+                    				"user": user
+                				}, function(err, document) {
+                					db.close();
+                                    res.redirect('back');
+                				});
+                			});
+                		});
     				});
     			});
     		});
@@ -654,10 +712,31 @@ app.post('/users/list/new', function(req, res) {
 						upsert: true,
 						safe: true
 					}, function(err, document) {
-                        req.session.user = user;
-                        req.session.password = req.body.password;
-						db.close();
-                        res.redirect('/home/' + user);
+                        db.collection('users_public', function(err, collection) {
+                    		collection.findOne({
+                				"user": user
+                			}, function(err, document) {
+                				if (!document) {
+                					document = new Object();
+                					document.user = user;
+                                    document.password = req.body.password;
+                					document.galleries = {};
+                					collection.update({
+                						"user": user
+                					}, document, {
+                						upsert: true,
+                						safe: true
+                					}, function(err, document) {
+                                        req.session.user = user;
+                                        req.session.password = req.body.password;
+                						db.close();
+                                        res.redirect('/home/' + user);
+                					});
+                				} else {
+                                    res.redirect('/home/' + user);
+                				}
+                			});
+                		});
 					});
 				} else {
                     res.redirect('/home/' + user);
