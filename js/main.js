@@ -409,7 +409,7 @@ function onMenuMouseOut()
 function onMenuSave()
 {
     function successUploadBackground() {
-        //alert('Saved!');
+        alert('Saved!');
     }
 	setPageScroll();
 	//window.open(canvas.toDataURL('image/png'),'mywindow');
