@@ -408,6 +408,7 @@ function onMenuMouseOut()
 
 function onMenuSave()
 {
+    function success() {}
 	// window.open(canvas.toDataURL('image/png'),'mywindow');
 	flatten();
     var data = new Object();

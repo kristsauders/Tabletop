@@ -425,7 +425,7 @@ function onMenuSave()
       cache: false,
       async : false
     });
-	window.open(flattenCanvas.toDataURL('image/png'),'mywindow');
+	//window.open(flattenCanvas.toDataURL('image/png'),'mywindow');
 }
 
 function onMenuClear()
