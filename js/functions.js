@@ -204,15 +204,15 @@ function showDelete() {
 	for (i=0;i<x.length;i++)
 	{
 	if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
-	var element = document.createElement("input");
-	element.setAttribute("type","button");
-	element.setAttribute("value","x");
-	element.setAttribute("onclick","javascript:deleteImage(this)");
-	element.onclick = function() {deleteImage(this);};
-	element.style.position = 'absolute';
-	element.style.left = '0px';
-	element.style.top = '0px';
-	x[i].parentNode.appendChild(element);
+    	var element = document.createElement("input");
+    	element.setAttribute("type","button");
+    	element.setAttribute("value","x");
+    	element.setAttribute("onclick","javascript:deleteImage(this)");
+    	element.onclick = function() {deleteImage(this);};
+    	element.style.position = 'absolute';
+    	element.style.left = '0px';
+    	element.style.top = '0px';
+    	x[i].parentNode.appendChild(element);
 	}
 }
 	document.getElementById("adminDeleteButton").onclick = hideDelete;
@@ -539,3 +539,11 @@ $(document).ready(function(){
       }
     );
 });
+var timer;
+function onResize() {
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+        location.reload();
+    }, 500);
+}
+window.addEventListener('resize', onResize, false);

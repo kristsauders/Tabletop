@@ -210,8 +210,16 @@ function onWindowMouseMove( event )
 	mouseY = event.clientY;
 }
 
-function onWindowResize()
+var timer;
+
+function onWindowResize(arg)
 {
+    if(arg) {
+        clearTimeout(timer);
+        timer = setTimeout(function(){
+            location.reload();
+        }, 500);
+    }
 	SCREEN_WIDTH = window.innerWidth;
 	SCREEN_HEIGHT = Math.max(
 	        Math.max(document.body.scrollHeight, document.documentElement.scrollHeight),
