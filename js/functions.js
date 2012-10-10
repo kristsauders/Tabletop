@@ -1,5 +1,5 @@
 
-function loginSuccess() {
+function loginSuccess(response) {
     setTimeout(function(){window.location.reload(true);}, 1000);
 }
     
@@ -12,9 +12,42 @@ function login() {
            type: 'POST',
            url: '/users/list/login',
            data: data,
-           success: loginSuccess(),
+           success: function(response){
+               loginSuccess(response);
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+               alert(JSON.stringify(jqXHR.responseText));
+           },
            dataType: 'json'
         });
+    }
+}
+
+function changePasswordSuccess() {
+    setTimeout(function(){window.location.reload(true);}, 1000);
+}
+    
+function changePassword() {
+    var data = new Object();
+    data.user = prompt("Enter username","");
+    data.password = prompt("Enter old password","");
+    data.newPassword = prompt("Enter new password","");
+    data.newPasswordConfirm = prompt("Confirm new password","");
+    if((data.password) && (data.newPassword==data.newPasswordConfirm)) {
+        $.ajax({
+           type: 'POST',
+           url: '/users/list/password',
+           data: data,
+           success: function(response){
+               changePasswordSuccess(response);
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+               alert(JSON.stringify(jqXHR.responseText));
+           },
+           dataType: 'json'
+        });
+    } else {
+        alert('You entered something incorrectly, please try again!');
     }
 }
 
@@ -366,105 +399,127 @@ function deleteFullScreenButton(el) {
 	var fullScreenButton2 = document.getElementById("fullScreenButton2");
 	fullScreenButton2.parentNode.removeChild(fullScreenButton2);
 }
+function signupSuccess(user) {
+        setTimeout(function(){
+        	window.location = '/home/' + user;
+    	}, 1000);
+}
 function signup() {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
     if(data.password) {
-        function signupSuccess() {
-        setTimeout(function(){
-    		window.location = '/home/' + data.user.toLowerCase();
-    	}, 1000);
-        }
         $.ajax({
            type: 'POST',
            url: '/users/list/new',
            data: data,
-           success: signupSuccess(),
+           success: function(response){
+               signupSuccess(data.user.toLowerCase());
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+               alert(JSON.stringify(jqXHR.responseText));
+           },
            dataType: 'json'
         });
     }
 }
+function deleteUserSuccess() {
+        setTimeout(function(){
+        	window.location = '/';
+    	}, 1000);
+        }
 function deleteAccount() {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
     if(data.password) {
-        function deleteUserSuccess() {
-        setTimeout(function(){
-    		window.location = '/';
-    	}, 1000);
-        }
         $.get(
            '/users/list/account/delete/' + data.user,
            function(data) {
-    	deleteUserSuccess();
-        });
+    	        deleteUserSuccess();
+            }
+        );
     }
 }
+function newGallerySuccess(user, gallery) {
+        setTimeout(function(){
+        	window.location = '/' + user + '/' + gallery;
+    	}, 1000);
+        }
 function newGallery() {
     var data = new Object();
     data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = prompt("Enter gallery name","");
     if(data.gallery) {
-        function newGallerySuccess() {
-        setTimeout(function(){
-    		window.location = '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase();
-    	}, 1000);
-        }
         $.ajax({
            type: 'POST',
            url: '/' + data.user.toLowerCase() + '/galleries/new',
            data: data,
-           success: newGallerySuccess(data),
+           success: function(response){
+               newGallerySuccess(data.user.toLowerCase(), data.gallery.toLowerCase());
+           },
+           error: function(jqXHR, textStatus, errorThrown){
+               alert(JSON.stringify(jqXHR.responseText));
+           },
            dataType: 'json'
         });
     }
 }
+function deleteGallerySuccess(user) {
+        setTimeout(function(){
+        	window.location = '/home/' + user;
+    	}, 1000);
+        }
 function deleteGallery() {
     var data = new Object();
     data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = prompt("Enter gallery","");
     if(data.gallery) {
-        function deleteGallerySuccess() {
-        setTimeout(function(){
-    		window.location = '/home/' + data.user.toLowerCase();
-    	}, 1000);
-        }
         $.get(
            '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase() + '/delete',
            function(data) {
-    	deleteGallerySuccess();
-        });
+    	        deleteGallerySuccess(data.user.toLowerCase());
+            }
+        );
     }
+}
+function publishGallerySuccess() {
+    setTimeout(function(){
+        window.location = document.URL.split('#')[0].split('?')[0];
+    }, 1000);
 }
 function publishGallery() {
     var data = new Object();
-    function publishGallerySuccess() {
-    setTimeout(function(){
-    	window.location = document.URL.split('#')[0].split('?')[0];
-    }, 1000);
-    }
     $.ajax({
        type: 'POST',
        url: document.URL.split('#')[0].split('?')[0] + '/publish',
        data: data,
-       success: publishGallerySuccess(),
+       success: function(response){
+               publishGallerySuccess();
+           },
+        error: function(jqXHR, textStatus, errorThrown){
+           alert(JSON.stringify(jqXHR.responseText));
+        },
        dataType: 'json'
     });
 }
-function unpublishGallery() {
-    var data = new Object();
-    function unpublishGallerySuccess() {
+function unpublishGallerySuccess() {
     setTimeout(function(){
         window.location = document.URL.split('#')[0].split('?')[0];
     }, 1000);
-    }
+}
+function unpublishGallery() {
+    var data = new Object();
     $.ajax({
        type: 'POST',
        url: document.URL.split('#')[0].split('?')[0] + '/unpublish',
        data: data,
-       success: unpublishGallerySuccess(),
+       success: function(response){
+               unpublishGallerySuccess();
+           },
+        error: function(jqXHR, textStatus, errorThrown){
+           alert(JSON.stringify(jqXHR.responseText));
+        },
        dataType: 'json'
     });
 }

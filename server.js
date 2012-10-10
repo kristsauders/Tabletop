@@ -7,7 +7,8 @@ var express = require('express'),
 	fs = require('fs'),
 	sys = require('sys'),
     MongoStore = require('connect-mongo')(express),
-    nodemailer = require("nodemailer"),
+    nodemailer = require('nodemailer'),
+    crypto = require('crypto'),
     config = require('./config.js'),
 	im = require('imagemagick');
     
@@ -67,7 +68,7 @@ app.post('/:user/:gallery/publish', function(req, res) {
             					safe: true
             				}, function(err, document) {
                                 db.close();
-                                res.redirect('back');
+                                res.send(200, {success:true});
                                 fs.readFile(__dirname + '/images/' + user + '-' + gallery + '-bg.png', function (err, data) {
                                   if (err) throw err;
                                   fs.writeFile(__dirname + '/images/' + user + '-' + gallery + '-bg-public.png', data);
@@ -79,7 +80,7 @@ app.post('/:user/:gallery/publish', function(req, res) {
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to publish this gallery.');
+        res.send(400, 'Sorry, but you do not have access to publish this gallery.');
     }
 });
 
@@ -106,12 +107,12 @@ app.post('/:user/:gallery/unpublish', function(req, res) {
     				}, function(err, document) {
     					db.close();
     				});
-    				res.redirect('back');
+    				res.send(200, {success:true});
     			});
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to manage these galleries.');
+        res.send(400, 'Sorry, but you do not have access to manage these galleries.');
     }
 });
 
@@ -224,7 +225,7 @@ app.post('/:user/:gallery/photos/new', function(req, res, next) {
     		processUploads(req, res, 0);
     	}
     } else {
-        res.send('Sorry, but you do not have permission to upload files to this gallery.');
+        res.send(400, 'Sorry, but you do not have permission to upload files to this gallery.');
     }
 });
 
@@ -279,7 +280,7 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
         	});
         });
     } else {
-        res.send('Sorry, but you do not have access to upload photos to this gallery.');
+        res.send(400, 'Sorry, but you do not have access to upload photos to this gallery.');
     }
 });
 
@@ -289,9 +290,9 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
     	var data = req.body.f1.replace(/^data:image\/\w+;base64,/, "");
     	var buf = new Buffer(data, 'base64');
     	fs.writeFile(__dirname + '/images/' + req.params.user + '-' + req.params.gallery + '-bg.png', buf);
-    	res.redirect('back');
+    	res.send(200, {success:true});
     } else {
-        res.send('Sorry, but you do not have access to upload photos to this gallery.');
+        res.send(400, 'Sorry, but you do not have access to upload photos to this gallery.');
     }
 });
 
@@ -510,12 +511,12 @@ app.post('/:user/:gallery/upsert', function(req, res) {
     				}, function(err, document) {
     					db.close();
     				});
-    				res.redirect('back');
+    				res.send(200, {success:true});
     			});
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to update coordinates for this gallery.');
+        res.send(400, 'Sorry, but you do not have access to update coordinates for this gallery.');
     }
 });
 
@@ -553,7 +554,7 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to update links for this gallery.');
+        res.send(400, 'Sorry, but you do not have access to update links for this gallery.');
     }
 });
 
@@ -607,7 +608,7 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to delete photos from this gallery.');
+        res.send(400, 'Sorry, but you do not have access to delete photos from this gallery.');
     }
 });
 
@@ -648,7 +649,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
                     			}, function(err, document) {
                     				db.close();
                     			});
-                    			res.redirect('back');
+                    			res.send(200, {success:true});
                     		});
                     	});
     				});
@@ -656,7 +657,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to manage these galleries.');
+        res.send(400, 'Sorry, but you do not have access to manage these galleries.');
     }
 });
 
@@ -705,7 +706,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
                     				"user": user
                 				}, function(err, document) {
                                 	db.close();
-                                    res.redirect('back');
+                                    res.send(200, {success:true});
                 				});
                 			});
                 		});
@@ -714,7 +715,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to delete this user account.');
+        res.send(400, 'Sorry, but you do not have access to delete this user account.');
     }
 });
 
@@ -742,12 +743,12 @@ app.post('/:user/galleries/new', function(req, res) {
     						db.close();
     					});
     				}
-    				res.redirect('back');
+    				res.send(200, {success:true});
     			});
     		});
     	});
     } else {
-        res.send('Sorry, but you do not have access to manage these galleries.');
+        res.send(400, 'Sorry, but you do not have access to manage these galleries.');
     }
 });
 
@@ -762,7 +763,7 @@ app.post('/users/list/new', function(req, res) {
 				if (!document) {
 					document = new Object();
 					document.user = user;
-                    document.password = req.body.password;
+                    document.password = crypto.createHash('md5').update(req.body.password).digest("hex");
 					document.galleries = {};
 					collection.update({
 						"user": user
@@ -786,18 +787,18 @@ app.post('/users/list/new', function(req, res) {
                 						safe: true
                 					}, function(err, document) {
                                         req.session.user = user;
-                                        req.session.password = req.body.password;
+                                        //req.session.password = req.body.password;
                 						db.close();
-                                        res.redirect('/home/' + user);
+                                        res.send(200, {success:true});
                 					});
                 				} else {
-                                    res.redirect('/home/' + user);
+                                    res.redirect(400, 'User already exists!');
                 				}
                 			});
                 		});
 					});
 				} else {
-                    res.redirect('/home/' + user);
+                    res.send(400, 'User already exists!');
 				}
 			});
 		});
@@ -839,14 +840,48 @@ app.post('/users/list/login', function(req, res) {
     			collection.findOne({
     				"user": user
     			}, function(err, document) {
-    				if(document.password == req.body.password) {
+    				if(document.password == crypto.createHash('md5').update(req.body.password).digest("hex")) {
                         req.session.user = user;
-                        req.session.password = req.body.password;
-    	                res.redirect('/home/' + user);
+                        //req.session.password = req.body.password;
+    	                res.send(200, {success:true});
                         console.log('Correct Password');
     				} else {
                         console.log('Wrong Password');
-                        res.redirect('/home/' + user);
+                        res.send(400, 'Wrong password!');
+    				}
+    				db.close();
+    			});
+    		});
+    	});
+    }
+});
+
+app.post('/users/list/password', function(req, res) {
+    console.log('Password change by ' + req.body.user);
+    var user = req.body.user.toLowerCase();
+    if(user.length>0) {
+        db.open(function(err, db) {
+        	db.collection('users', function(err, collection) {
+    			collection.findOne({
+    				"user": user
+    			}, function(err, document) {
+    				if(document.password == crypto.createHash('md5').update(req.body.password).digest("hex")) {
+                        document.password = crypto.createHash('md5').update(req.body.newPassword).digest("hex");
+                        //req.session.password = req.body.password;
+                        collection.update({
+                        		"user": user
+                    		}, document, {
+                    			upsert: true,
+                    			safe: true
+                    		}, function(err, document) {
+                                req.session.user = user;
+                                //req.session.password = req.body.password;
+                    			db.close();
+                                res.send(200);
+                		});
+    				} else {
+                        console.log('Wrong Password');
+                        res.send(400, 'Wrong password!');
     				}
     				db.close();
     			});
@@ -859,7 +894,7 @@ app.post('/users/list/logout', function(req, res) {
     console.log('Logout by ' + req.session.user);
     req.session.user = '';
     req.session.password = '';
-    res.redirect('/home/users');
+    res.send(200, {success:true});
 });
 
 app.get('/', function(req, res) {
