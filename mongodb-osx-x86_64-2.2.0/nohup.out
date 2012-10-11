@@ -9702,3 +9702,30 @@ Wed Oct 10 13:50:41 [conn998] end connection 127.0.0.1:58399 (4 connections now 
 Wed Oct 10 13:50:41 [conn1001] end connection 127.0.0.1:58402 (3 connections now open)
 Wed Oct 10 13:50:41 [conn999] end connection 127.0.0.1:58400 (2 connections now open)
 Wed Oct 10 13:50:41 [conn1000] end connection 127.0.0.1:58401 (1 connection now open)
+Wed Oct 10 13:54:04 [conn715] end connection 127.0.0.1:57814 (0 connections now open)
+Wed Oct 10 14:47:39 [initandlisten] MongoDB starting : pid=11901 port=27017 dbpath=/data/db/ 64-bit host=dn141-204-193-144.dhcpn.mobc.att.com
+Wed Oct 10 14:47:39 [initandlisten] 
+Wed Oct 10 14:47:39 [initandlisten] ** WARNING: soft rlimits too low. Number of files is 256, should be at least 1000
+Wed Oct 10 14:47:39 [initandlisten] db version v2.2.0, pdfile version 4.5
+Wed Oct 10 14:47:39 [initandlisten] git version: f5e83eae9cfbec7fb7a071321928f00d1b0c5207
+Wed Oct 10 14:47:39 [initandlisten] build info: Darwin bs-osx-106-x86-64-1.local 10.8.0 Darwin Kernel Version 10.8.0: Tue Jun  7 16:33:36 PDT 2011; root:xnu-1504.15.3~1/RELEASE_I386 i386 BOOST_LIB_VERSION=1_49
+Wed Oct 10 14:47:39 [initandlisten] options: { rest: true }
+Wed Oct 10 14:47:39 [initandlisten] journal dir=/data/db/journal
+Wed Oct 10 14:47:39 [initandlisten] recover begin
+Wed Oct 10 14:47:39 [initandlisten] recover lsn: 6564545
+Wed Oct 10 14:47:39 [initandlisten] recover /data/db/journal/j._0
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:108701 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:326636 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:436478 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:601393 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:656543 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:711328 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:1205453 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:1260085 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section seq:1314930 < lsn:6564545
+Wed Oct 10 14:47:39 [initandlisten] recover skipping application of section more...
+Wed Oct 10 14:47:39 [initandlisten] recover cleaning up
+Wed Oct 10 14:47:39 [initandlisten] removeJournalFiles
+Wed Oct 10 14:47:39 [initandlisten] recover done
+Wed Oct 10 14:47:39 [websvr] admin web console waiting for connections on port 28017
+Wed Oct 10 14:47:39 [initandlisten] waiting for connections on port 27017

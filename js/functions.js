@@ -539,11 +539,11 @@ $(document).ready(function(){
       }
     );
 });
-var timer;
-function onResize() {
-    clearTimeout(timer);
-    timer = setTimeout(function(){
-        location.reload();
-    }, 500);
-}
-window.addEventListener('resize', onResize, false);
+//var timer;
+//function onResize() {
+//    clearTimeout(timer);
+//    timer = setTimeout(function(){
+//        location.reload();
+//    }, 500);
+//}
+//window.addEventListener('resize', onResize, false);
