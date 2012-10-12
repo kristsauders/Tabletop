@@ -9729,3 +9729,116 @@ Wed Oct 10 14:47:39 [initandlisten] removeJournalFiles
 Wed Oct 10 14:47:39 [initandlisten] recover done
 Wed Oct 10 14:47:39 [websvr] admin web console waiting for connections on port 28017
 Wed Oct 10 14:47:39 [initandlisten] waiting for connections on port 27017
+Thu Oct 11 12:27:41 got signal 1 (Hangup: 1), will terminate after current cmd ends
+Thu Oct 11 12:27:41 [interruptThread] now exiting
+Thu Oct 11 12:27:41 dbexit: 
+Thu Oct 11 12:27:41 [interruptThread] shutdown: going to close listening sockets...
+Thu Oct 11 12:27:41 [interruptThread] closing listening socket: 7
+Thu Oct 11 12:27:41 [interruptThread] closing listening socket: 8
+Thu Oct 11 12:27:41 [interruptThread] closing listening socket: 9
+Thu Oct 11 12:27:41 [interruptThread] removing socket file: /tmp/mongodb-27017.sock
+Thu Oct 11 12:27:41 [interruptThread] shutdown: going to flush diaglog...
+Thu Oct 11 12:27:41 [interruptThread] shutdown: going to close sockets...
+Thu Oct 11 12:27:41 [interruptThread] shutdown: waiting for fs preallocator...
+Thu Oct 11 12:27:41 [interruptThread] shutdown: lock for final commit...
+Thu Oct 11 12:27:41 [interruptThread] shutdown: final commit...
+Thu Oct 11 12:27:41 [interruptThread] shutdown: closing all files...
+Thu Oct 11 12:27:41 [interruptThread] closeAllFiles() finished
+Thu Oct 11 12:27:41 [interruptThread] journalCleanup...
+Thu Oct 11 12:27:41 [interruptThread] removeJournalFiles
+Thu Oct 11 12:27:41 [interruptThread] shutdown: removing fs lock...
+Thu Oct 11 12:27:41 dbexit: really exiting now
+bin/mongod --help for help and startup options
+Fri Oct 12 13:26:10 [initandlisten] MongoDB starting : pid=28016 port=27017 dbpath=/data/db/ 64-bit host=dn141-204-193-144.dhcpn.mobc.att.com
+Fri Oct 12 13:26:10 [initandlisten] 
+Fri Oct 12 13:26:10 [initandlisten] ** WARNING: soft rlimits too low. Number of files is 256, should be at least 1000
+Fri Oct 12 13:26:10 [initandlisten] db version v2.2.0, pdfile version 4.5
+Fri Oct 12 13:26:10 [initandlisten] git version: f5e83eae9cfbec7fb7a071321928f00d1b0c5207
+Fri Oct 12 13:26:10 [initandlisten] build info: Darwin bs-osx-106-x86-64-1.local 10.8.0 Darwin Kernel Version 10.8.0: Tue Jun  7 16:33:36 PDT 2011; root:xnu-1504.15.3~1/RELEASE_I386 i386 BOOST_LIB_VERSION=1_49
+Fri Oct 12 13:26:10 [initandlisten] options: {}
+Fri Oct 12 13:26:10 [initandlisten] journal dir=/data/db/journal
+Fri Oct 12 13:26:10 [initandlisten] recover : no journal files present, no recovery needed
+Fri Oct 12 13:26:11 [websvr] admin web console waiting for connections on port 28017
+Fri Oct 12 13:26:11 [initandlisten] waiting for connections on port 27017
+Fri Oct 12 13:26:17 [initandlisten] connection accepted from 127.0.0.1:64988 #1 (1 connection now open)
+Fri Oct 12 13:26:24 [initandlisten] connection accepted from 127.0.0.1:64992 #2 (2 connections now open)
+Fri Oct 12 13:26:24 [initandlisten] connection accepted from 127.0.0.1:64993 #3 (3 connections now open)
+Fri Oct 12 13:26:24 [initandlisten] connection accepted from 127.0.0.1:64994 #4 (4 connections now open)
+Fri Oct 12 13:26:24 [initandlisten] connection accepted from 127.0.0.1:64995 #5 (5 connections now open)
+Fri Oct 12 13:26:24 [initandlisten] connection accepted from 127.0.0.1:64996 #6 (6 connections now open)
+Fri Oct 12 13:26:24 [conn2] end connection 127.0.0.1:64992 (5 connections now open)
+Fri Oct 12 13:26:24 [conn4] end connection 127.0.0.1:64994 (4 connections now open)
+Fri Oct 12 13:26:24 [conn5] end connection 127.0.0.1:64995 (3 connections now open)
+Fri Oct 12 13:26:24 [conn6] end connection 127.0.0.1:64996 (2 connections now open)
+Fri Oct 12 13:26:24 [conn3] end connection 127.0.0.1:64993 (1 connection now open)
+Fri Oct 12 13:26:25 [initandlisten] connection accepted from 127.0.0.1:65001 #7 (2 connections now open)
+Fri Oct 12 13:26:25 [initandlisten] connection accepted from 127.0.0.1:65002 #8 (3 connections now open)
+Fri Oct 12 13:26:25 [initandlisten] connection accepted from 127.0.0.1:65003 #9 (4 connections now open)
+Fri Oct 12 13:26:25 [initandlisten] connection accepted from 127.0.0.1:65004 #10 (5 connections now open)
+Fri Oct 12 13:26:25 [initandlisten] connection accepted from 127.0.0.1:65005 #11 (6 connections now open)
+Fri Oct 12 13:26:25 [conn9] end connection 127.0.0.1:65003 (5 connections now open)
+Fri Oct 12 13:26:25 [conn10] end connection 127.0.0.1:65004 (4 connections now open)
+Fri Oct 12 13:26:25 [conn11] end connection 127.0.0.1:65005 (3 connections now open)
+Fri Oct 12 13:26:25 [conn7] end connection 127.0.0.1:65001 (2 connections now open)
+Fri Oct 12 13:26:25 [conn8] end connection 127.0.0.1:65002 (1 connection now open)
+Fri Oct 12 13:26:27 [initandlisten] connection accepted from 127.0.0.1:65006 #12 (2 connections now open)
+Fri Oct 12 13:26:27 [initandlisten] connection accepted from 127.0.0.1:65007 #13 (3 connections now open)
+Fri Oct 12 13:26:27 [conn12] end connection 127.0.0.1:65006 (2 connections now open)
+Fri Oct 12 13:26:27 [conn13] end connection 127.0.0.1:65007 (1 connection now open)
+Fri Oct 12 13:26:27 [initandlisten] connection accepted from 127.0.0.1:65008 #14 (2 connections now open)
+Fri Oct 12 13:26:27 [conn14] end connection 127.0.0.1:65008 (1 connection now open)
+Fri Oct 12 13:26:27 [initandlisten] connection accepted from 127.0.0.1:65009 #15 (2 connections now open)
+Fri Oct 12 13:26:27 [conn15] end connection 127.0.0.1:65009 (1 connection now open)
+Fri Oct 12 13:26:27 [initandlisten] connection accepted from 127.0.0.1:65010 #16 (2 connections now open)
+Fri Oct 12 13:26:27 [conn16] end connection 127.0.0.1:65010 (1 connection now open)
+Fri Oct 12 13:26:28 [initandlisten] connection accepted from 127.0.0.1:65011 #17 (2 connections now open)
+Fri Oct 12 13:26:28 [initandlisten] connection accepted from 127.0.0.1:65012 #18 (3 connections now open)
+Fri Oct 12 13:26:28 [initandlisten] connection accepted from 127.0.0.1:65013 #19 (4 connections now open)
+Fri Oct 12 13:26:28 [initandlisten] connection accepted from 127.0.0.1:65014 #20 (5 connections now open)
+Fri Oct 12 13:26:28 [initandlisten] connection accepted from 127.0.0.1:65015 #21 (6 connections now open)
+Fri Oct 12 13:26:28 [conn19] end connection 127.0.0.1:65013 (5 connections now open)
+Fri Oct 12 13:26:28 [conn17] end connection 127.0.0.1:65011 (4 connections now open)
+Fri Oct 12 13:26:28 [conn20] end connection 127.0.0.1:65014 (4 connections now open)
+Fri Oct 12 13:26:28 [conn21] end connection 127.0.0.1:65015 (2 connections now open)
+Fri Oct 12 13:26:28 [conn18] end connection 127.0.0.1:65012 (2 connections now open)
+Fri Oct 12 13:26:30 [initandlisten] connection accepted from 127.0.0.1:65016 #22 (2 connections now open)
+Fri Oct 12 13:26:30 [initandlisten] connection accepted from 127.0.0.1:65017 #23 (3 connections now open)
+Fri Oct 12 13:26:30 [initandlisten] connection accepted from 127.0.0.1:65018 #24 (4 connections now open)
+Fri Oct 12 13:26:30 [initandlisten] connection accepted from 127.0.0.1:65019 #25 (5 connections now open)
+Fri Oct 12 13:26:30 [initandlisten] connection accepted from 127.0.0.1:65020 #26 (6 connections now open)
+Fri Oct 12 13:26:30 [conn22] end connection 127.0.0.1:65016 (5 connections now open)
+Fri Oct 12 13:26:30 [conn24] end connection 127.0.0.1:65018 (4 connections now open)
+Fri Oct 12 13:26:30 [conn25] end connection 127.0.0.1:65019 (4 connections now open)
+Fri Oct 12 13:26:30 [conn23] end connection 127.0.0.1:65017 (2 connections now open)
+Fri Oct 12 13:26:30 [conn26] end connection 127.0.0.1:65020 (1 connection now open)
+Fri Oct 12 13:28:22 [initandlisten] connection accepted from 127.0.0.1:65032 #27 (2 connections now open)
+Fri Oct 12 13:28:22 [initandlisten] connection accepted from 127.0.0.1:65033 #28 (3 connections now open)
+Fri Oct 12 13:28:22 [initandlisten] connection accepted from 127.0.0.1:65034 #29 (4 connections now open)
+Fri Oct 12 13:28:22 [initandlisten] connection accepted from 127.0.0.1:65035 #30 (5 connections now open)
+Fri Oct 12 13:28:22 [initandlisten] connection accepted from 127.0.0.1:65036 #31 (6 connections now open)
+Fri Oct 12 13:28:23 [conn27] end connection 127.0.0.1:65032 (5 connections now open)
+Fri Oct 12 13:28:23 [conn29] end connection 127.0.0.1:65034 (5 connections now open)
+Fri Oct 12 13:28:23 [conn28] end connection 127.0.0.1:65033 (3 connections now open)
+Fri Oct 12 13:28:23 [conn30] end connection 127.0.0.1:65035 (2 connections now open)
+Fri Oct 12 13:28:23 [conn31] end connection 127.0.0.1:65036 (1 connection now open)
+Fri Oct 12 13:32:59 [initandlisten] connection accepted from 127.0.0.1:65077 #32 (2 connections now open)
+Fri Oct 12 13:32:59 [initandlisten] connection accepted from 127.0.0.1:65078 #33 (3 connections now open)
+Fri Oct 12 13:32:59 [initandlisten] connection accepted from 127.0.0.1:65079 #34 (4 connections now open)
+Fri Oct 12 13:32:59 [initandlisten] connection accepted from 127.0.0.1:65080 #35 (5 connections now open)
+Fri Oct 12 13:32:59 [initandlisten] connection accepted from 127.0.0.1:65081 #36 (6 connections now open)
+Fri Oct 12 13:32:59 [conn32] end connection 127.0.0.1:65077 (5 connections now open)
+Fri Oct 12 13:32:59 [conn35] end connection 127.0.0.1:65080 (4 connections now open)
+Fri Oct 12 13:32:59 [conn33] end connection 127.0.0.1:65078 (4 connections now open)
+Fri Oct 12 13:32:59 [conn34] end connection 127.0.0.1:65079 (3 connections now open)
+Fri Oct 12 13:32:59 [conn36] end connection 127.0.0.1:65081 (1 connection now open)
+Fri Oct 12 13:36:53 [initandlisten] connection accepted from 127.0.0.1:65098 #37 (2 connections now open)
+Fri Oct 12 13:36:53 [initandlisten] connection accepted from 127.0.0.1:65099 #38 (3 connections now open)
+Fri Oct 12 13:36:53 [initandlisten] connection accepted from 127.0.0.1:65100 #39 (4 connections now open)
+Fri Oct 12 13:36:53 [initandlisten] connection accepted from 127.0.0.1:65101 #40 (5 connections now open)
+Fri Oct 12 13:36:53 [initandlisten] connection accepted from 127.0.0.1:65102 #41 (6 connections now open)
+Fri Oct 12 13:36:53 [conn37] end connection 127.0.0.1:65098 (5 connections now open)
+Fri Oct 12 13:36:53 [conn38] end connection 127.0.0.1:65099 (4 connections now open)
+Fri Oct 12 13:36:53 [conn39] end connection 127.0.0.1:65100 (3 connections now open)
+Fri Oct 12 13:36:53 [conn40] end connection 127.0.0.1:65101 (2 connections now open)
+Fri Oct 12 13:36:53 [conn41] end connection 127.0.0.1:65102 (1 connection now open)
+Fri Oct 12 13:37:40 [conn1] end connection 127.0.0.1:64988 (0 connections now open)

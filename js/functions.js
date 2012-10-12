@@ -247,7 +247,15 @@ function hideDelete() {
              eval(t);
          }
 	 } else {
-        document.getElementById("fullScreenImage").src = el.src;
+        var hiResImg = new Image();
+        hiResImg.src = el.src.substring(0,el.src.lastIndexOf('-')) + '-large' + el.src.substring(el.src.lastIndexOf('.'));
+        if(!hiResImg.complete) {
+            document.getElementById("fullScreenImage").src = el.src;
+        } else {
+            if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
+                 document.getElementById("fullScreenImage").src = hiResImg.src;
+            }
+        }
         var ih = document.getElementById(el.id).firstChild.height;
         var iw = document.getElementById(el.id).firstChild.width;
         document.getElementById("fullScreenImage").style.width = getWindowSize()[0] + 'px';
@@ -278,17 +286,12 @@ function hideDelete() {
                document.getElementById("fullScreenImg").style.visibility = 'visible';
                document.getElementById("fullScreenImage").style.visibility = 'visible';
        }
-       var hiResImg = new Image();
-       hiResImg.src = el.src.substring(0,el.src.lastIndexOf('-')) + '-large' + el.src.substring(el.src.lastIndexOf('.'));
-       if(hiResImg.complete) {
-           if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
-                document.getElementById("fullScreenImage").src = hiResImg.src;
-           }
-       }
        hiResImg.onload = function() {
-           if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
-               document.getElementById("fullScreenImage").src = hiResImg.src;
-           }
+           setTimeout(function() {
+               if((document.getElementById("fullScreenImage").style.visibility=='visible') && (document.getElementById("fullScreenImage").src==el.src)) {
+                   document.getElementById("fullScreenImage").src = hiResImg.src;
+               }
+           }, 100);
        }
         ddpp = dd;
         dd.obj=null;
