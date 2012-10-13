@@ -559,8 +559,8 @@ function deleteUserSuccess() {
         }
 function submitDeleteAccount(user, password) {
     var data = new Object();
-    data.user = prompt("Enter username","");
-    data.password = prompt("Enter password","");
+    data.user = user;
+    data.password = password;
     if(confirm("Are you sure? This will delete your account!")) {
         if(data.password) {
             $.get(
