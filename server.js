@@ -874,16 +874,17 @@ app.post('/users/list/password', function(req, res) {
                     			upsert: true,
                     			safe: true
                     		}, function(err, document) {
+                                console.log('point 6 ');
                                 req.session.user = user;
+                                res.send(200);
                                 //req.session.password = req.body.password;
                     			db.close();
-                                res.send(200);
                 		});
     				} else {
                         console.log('Wrong Password');
                         res.send(400, 'Wrong password!');
     				}
-    				db.close();
+    				//db.close();
     			});
     		});
     	});

@@ -3,10 +3,10 @@ function loginSuccess(response) {
     setTimeout(function(){window.location.reload(true);}, 1000);
 }
     
-function login() {
+function submitLogin(user, password) {
     var data = new Object();
-    data.user = prompt("Enter username","");
-    data.password = prompt("Enter password","");
+    data.user = user;
+    data.password = password;
     if(data.password) {
         $.ajax({
            type: 'POST',
@@ -23,23 +23,63 @@ function login() {
     }
 }
 
+function login() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Username</label>\
+                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='password'>Password</label>\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Login",
+    	modal:true,
+    	height:200,
+    	width:300,
+    	buttons: {
+    		"Log in": function() {
+    			submitLogin($("#name").val(), $("#password").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitLogin($("#name").val(), $("#password").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
+}
+
 function changePasswordSuccess() {
     setTimeout(function(){window.location.reload(true);}, 1000);
 }
     
-function changePassword() {
+function submitChangePassword(user, password, newPassword, newPasswordConfirm) {
     var data = new Object();
-    data.user = prompt("Enter username","");
-    data.password = prompt("Enter old password","");
-    data.newPassword = prompt("Enter new password","");
-    data.newPasswordConfirm = prompt("Confirm new password","");
+    data.user = user;
+    data.password = password;
+    data.newPassword = newPassword;
+    data.newPasswordConfirm = newPasswordConfirm;
     if((data.password) && (data.newPassword==data.newPasswordConfirm)) {
         $.ajax({
            type: 'POST',
            url: '/users/list/password',
            data: data,
            success: function(response){
-               changePasswordSuccess(response);
+               changePasswordSuccess();
            },
            error: function(jqXHR, textStatus, errorThrown){
                alert(JSON.stringify(jqXHR.responseText));
@@ -49,6 +89,50 @@ function changePassword() {
     } else {
         alert('You entered something incorrectly, please try again!');
     }
+}
+
+function changePassword() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Username</label>\
+                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='password'>Password</label>\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='newPassword'>New Password</label>\
+                <input type='password' name='newPassword' id='newPassword' value='' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='newPasswordConfirm'>Confirm New Password</label>\
+                <input type='password' name='newPasswordConfirm' id='newPasswordConfirm' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Login",
+        modal:true,
+    	height:220,
+    	width:350,
+    	buttons: {
+    		"Log in": function() {
+    			submitChangePassword($("#name").val(), $("#password").val(), $("#newPassword").val(), $("#newPasswordConfirm").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitChangePassword($("#name").val(), $("#password").val(), $("#newPassword").val(), $("#newPasswordConfirm").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
 }
 
 function logoutSuccess() {
@@ -407,10 +491,10 @@ function signupSuccess(user) {
         	window.location = '/home/' + user;
     	}, 1000);
 }
-function signup() {
+function submitSignup(user, password) {
     var data = new Object();
-    data.user = prompt("Enter username","");
-    data.password = prompt("Enter password","");
+    data.user = user;
+    data.password = password;
     if(data.password) {
         $.ajax({
            type: 'POST',
@@ -426,12 +510,53 @@ function signup() {
         });
     }
 }
+function signup() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Username</label>\
+                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='email'>Email</label>\
+                <input type='text' name='email' id='email' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='password'>Password</label>\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Login",
+        modal:true,
+    	height:200,
+    	width:300,
+    	buttons: {
+    		"Log in": function() {
+    			submitSignup($("#name").val(), $("#password").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitSignup($("#name").val(), $("#password").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
+}
 function deleteUserSuccess() {
         setTimeout(function(){
         	window.location = '/';
     	}, 1000);
         }
-function deleteAccount() {
+function submitDeleteAccount(user, password) {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
@@ -443,6 +568,45 @@ function deleteAccount() {
             }
         );
     }
+}
+function deleteAccount() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Username</label>\
+                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+                <label for='password'>Password</label>\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Login",
+        modal:true,
+        height:200,
+    	width:300,
+    	buttons: {
+    		"Log in": function() {
+    			submitDeleteAccount($("#name").val(), $("#password").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitDeleteAccount($("#name").val(), $("#password").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
 }
 function newGallerySuccess(user, gallery) {
         setTimeout(function(){
