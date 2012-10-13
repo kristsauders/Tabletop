@@ -763,6 +763,7 @@ app.post('/users/list/new', function(req, res) {
 				if (!document) {
 					document = new Object();
 					document.user = user;
+                    document.email = req.body.email;
                     document.password = crypto.createHash('md5').update(req.body.password).digest("hex");
 					document.galleries = {};
 					collection.update({
@@ -778,6 +779,7 @@ app.post('/users/list/new', function(req, res) {
                 				if (!document) {
                 					document = new Object();
                 					document.user = user;
+                                    document.email = req.body.email;
                                     document.password = req.body.password;
                 					document.galleries = {};
                 					collection.update({
@@ -817,7 +819,7 @@ app.post('/users/list/new', function(req, res) {
         from: "Photo Admin <kristsauders@gmail.com>", // sender address
         to: "kristsauders@gmail.com", // list of receivers
         subject: "New User Signed Up", // Subject line
-        text: "A new user named " + user + " signed up at photo.kristsauders.com", // plaintext body
+        text: "A new user named " + user + " signed up at photo.kristsauders.com with the email " + req.body.email, // plaintext body
     }
     // send mail with defined transport object
     smtpTransport.sendMail(mailOptions, function(error, response){

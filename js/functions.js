@@ -491,9 +491,10 @@ function signupSuccess(user) {
         	window.location = '/home/' + user;
     	}, 1000);
 }
-function submitSignup(user, password) {
+function submitSignup(user, email, password) {
     var data = new Object();
     data.user = user;
+    data.email = email;
     data.password = password;
     if(data.password) {
         $.ajax({
@@ -530,7 +531,7 @@ function signup() {
     	width:300,
     	buttons: {
     		"Log in": function() {
-    			submitSignup($("#name").val(), $("#password").val());
+    			submitSignup($("#name").val(), $("#email").val(), $("#password").val());
     			$(this).dialog( "destroy" );
     			$(this).remove();
     		},
@@ -546,7 +547,7 @@ function signup() {
     });
     $("#login").submit(function(e){
     	e.preventDefault();
-    	submitSignup($("#name").val(), $("#password").val());
+    	submitSignup($("#name").val(), $("#email").val(), $("#password").val());
     	$(this).dialog( "destroy" );
     	$(this).remove();
     });
