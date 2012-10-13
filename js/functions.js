@@ -107,12 +107,12 @@ function changePassword() {
             </fieldset>\
         </form>\
     ").dialog({
-        title: "Login",
+        title: "Change Password",
         modal:true,
     	height:220,
     	width:350,
     	buttons: {
-    		"Log in": function() {
+    		"Change Password": function() {
     			submitChangePassword($("#name").val(), $("#password").val(), $("#newPassword").val(), $("#newPasswordConfirm").val());
     			$(this).dialog( "destroy" );
     			$(this).remove();
@@ -525,12 +525,12 @@ function signup() {
             </fieldset>\
         </form>\
     ").dialog({
-        title: "Login",
+        title: "Sign Up",
         modal:true,
     	height:200,
     	width:300,
     	buttons: {
-    		"Log in": function() {
+    		"Sign Up": function() {
     			submitSignup($("#name").val(), $("#email").val(), $("#password").val());
     			$(this).dialog( "destroy" );
     			$(this).remove();
@@ -561,13 +561,15 @@ function submitDeleteAccount(user, password) {
     var data = new Object();
     data.user = prompt("Enter username","");
     data.password = prompt("Enter password","");
-    if(data.password) {
-        $.get(
-           '/users/list/account/delete/' + data.user,
-           function(data) {
-    	        deleteUserSuccess();
-            }
-        );
+    if(confirm("Are you sure? This will delete your account!")) {
+        if(data.password) {
+            $.get(
+               '/users/list/account/delete/' + data.user,
+               function(data) {
+        	        deleteUserSuccess();
+                }
+            );
+        }
     }
 }
 function deleteAccount() {
@@ -582,12 +584,12 @@ function deleteAccount() {
             </fieldset>\
         </form>\
     ").dialog({
-        title: "Login",
+        title: "Delete Account",
         modal:true,
         height:200,
     	width:300,
     	buttons: {
-    		"Log in": function() {
+    		"Delete Account": function() {
     			submitDeleteAccount($("#name").val(), $("#password").val());
     			$(this).dialog( "destroy" );
     			$(this).remove();
