@@ -20,10 +20,10 @@
 				margin: 0px;
 				overflow: scroll;
 			}
-            img {
+            .ui-wrapper {
                 opacity: 1;
             }
-            img:hover {
+            .ui-wrapper:hover {
                 opacity: 1;   
                 /*Reflection*/ 
                 /*-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.4)));   */
@@ -51,7 +51,18 @@
             aspectRatio: true
         });
         $(".ui-wrapper").draggable({
-            zIndex: 1000
+            zIndex: 15000,
+            stop: function(event) {
+                var elements = document.getElementsByTagName("*");
+                var highest_index = 0;
+                for (var i = 0; i < elements.length - 1; i++) {
+                    if (parseInt(elements[i].style.zIndex) > highest_index) {
+                        if(elements[i]!=event.target)
+                            highest_index = parseInt(elements[i].style.zIndex);
+                    }
+                }
+                event.target.style.zIndex = highest_index + 1;
+            }
         }).click(function(event) {
             fullScreen(event.target);
         });
