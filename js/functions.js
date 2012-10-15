@@ -340,8 +340,8 @@ function hideDelete() {
                  document.getElementById("fullScreenImage").src = hiResImg.src;
             }
         }
-        var ih = document.getElementById(el.id).firstChild.height;
-        var iw = document.getElementById(el.id).firstChild.width;
+        var ih = el.height;
+        var iw = el.width;
         document.getElementById("fullScreenImage").style.width = getWindowSize()[0] + 'px';
            var rs = getWindowSize()[1]/getWindowSize()[0];
            var ri = ih/iw;

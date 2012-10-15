@@ -45,6 +45,18 @@
             }
             .drag {position: absolute;}
 </style>
+    <script>
+    $(function() {
+        $( ".drag" ).resizable({
+            aspectRatio: true
+        });
+        $(".ui-wrapper").draggable({
+            zIndex: 1000
+        }).click(function(event) {
+            fullScreen(event.target);
+        });
+    });
+    </script>
 </head>
 
 <body   oncontextmenu="return false;" >
@@ -115,7 +127,7 @@ function setDraggables() {
 	SET_DHTML(SCALABLE, SCROLL, "<%- il.substring(0, il.length-3)%>");
 }
 resizeFirst();
-setDraggables(); 
+//setDraggables(); 
 pageScroll();
 if(false) showDelete();
 function setHover() {
