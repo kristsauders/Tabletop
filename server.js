@@ -489,7 +489,7 @@ app.post('/:user/:gallery/upsert', function(req, res) {
     				var gal = document.galleries[req.params.gallery];
     				var p = 0;
     				for (var i in gal) {
-    					if (gal[p].source.split('/').pop() == req.body.image) {
+    					if (gal[p].source.split('/').pop().replace('.jpg', '').replace('.png', '') == req.body.image.replace('.jpg', '').replace('.png', '')) {
     						break;
     					}
     					else {

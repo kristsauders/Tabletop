@@ -46,27 +46,27 @@
             .drag {position: absolute;}
 </style>
     <script>
-    $(function() {
-        $( ".drag" ).resizable({
-            aspectRatio: true
-        });
-        $(".ui-wrapper").draggable({
-            zIndex: 15000,
-            stop: function(event) {
-                var elements = document.getElementsByTagName("*");
-                var highest_index = 0;
-                for (var i = 0; i < elements.length - 1; i++) {
-                    if (parseInt(elements[i].style.zIndex) > highest_index) {
-                        if(elements[i]!=event.target)
-                            highest_index = parseInt(elements[i].style.zIndex);
+        $(function() {
+            $( ".drag" ).resizable({
+                aspectRatio: true
+            });
+            $(".ui-wrapper").draggable({
+                zIndex: 15000,
+                stop: function(event) {
+                    var elements = document.getElementsByTagName("*");
+                    var highest_index = 0;
+                    for (var i = 0; i < elements.length - 1; i++) {
+                        if (parseInt(elements[i].style.zIndex) > highest_index) {
+                            if(elements[i]!=event.target)
+                                highest_index = parseInt(elements[i].style.zIndex);
+                        }
                     }
+                    event.target.style.zIndex = highest_index + 1;
                 }
-                event.target.style.zIndex = highest_index + 1;
-            }
-        }).click(function(event) {
-            fullScreen(event.target);
+            }).click(function(event) {
+                fullScreen(event.target);
+            });
         });
-    });
     </script>
 </head>
 

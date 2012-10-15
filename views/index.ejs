@@ -67,10 +67,10 @@
 				margin-left: 1px;
 				background-color: #eee;
 			}
-            img {
+            .ui-wrapper {
                 opacity: 1;
             }
-            img:hover {
+            .ui-wrapper:hover {
                 opacity: 1;
                 /*Reflection*/ 
                 /*-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.4)));   */
@@ -149,18 +149,18 @@ function deleteImage(el) {
   myForm.submit() ;
   document.body.removeChild(myForm) ;
 }
-function saveCoords() {
+function saveCoords(dd) {
     saveToLocalStorage();
     setPageScroll();
     
     var data = new Object();
-    data.side = dd.obj.x*(1366/getWindowSize()[0]);
-    data.top = dd.obj.y*(1366/getWindowSize()[0]);
-    data.image = dd.obj.name;
-    data.width = dd.obj.w*(1366/getWindowSize()[0]);
-    data.height = dd.obj.h*(1366/getWindowSize()[0]);
+    data.side = parseInt($(dd).css('left'))*(1366/getWindowSize()[0]);
+    data.top = parseInt($(dd).css('top'))*(1366/getWindowSize()[0]);
+    data.image = $(dd).find('img')[0].src.split("/").pop().replace('-small','').replace('-medium','').replace('-large','');
+    data.width = parseInt($(dd).css('width'))*(1366/getWindowSize()[0]);
+    data.height = parseInt($(dd).css('height'))*(1366/getWindowSize()[0]);
     data.deleteIsOn = '';
-    data.z = dd.z;
+    data.z = $(dd).css('z-index');
     $.ajax({
       type: 'POST',
       url: '/<%=data.params.user + '/' + data.params.gallery%>/upsert',
@@ -196,10 +196,59 @@ function goHome() {
   myForm.submit();
   document.body.removeChild(myForm);
 }
+    $(function() {
+        $( ".drag" ).resizable({
+            aspectRatio: true
+        });
+        $(".ui-wrapper").draggable({
+            zIndex: 15000,
+            stop: function(event) {
+                var elements = document.getElementsByTagName("*");
+                var highest_index = 0;
+                for (var i = 0; i < elements.length - 1; i++) {
+                    if (parseInt(elements[i].style.zIndex) > highest_index) {
+                        if(elements[i]!=event.target)
+                            highest_index = parseInt(elements[i].style.zIndex);
+                    }
+                }
+                event.target.style.zIndex = highest_index + 1;
+                saveCoords(event.target);
+            }
+        }).click(function(event) {
+            fullScreen(event.target);
+        });
+    });
 </script>
 </head>
 
 <body oncontextmenu="return false;" >
+
+    <!-- Background drawing code here -->
+    	<script type="text/javascript" src="/js/brushes/circles.js"></script>
+		<script type="text/javascript" src="/js/brushes/chrome.js"></script>
+		<script type="text/javascript" src="/js/brushes/fur.js"></script>
+		<script type="text/javascript" src="/js/brushes/grid.js"></script>
+		<script type="text/javascript" src="/js/brushes/longfur.js"></script>
+		<script type="text/javascript" src="/js/brushes/ribbon.js"></script>
+		<script type="text/javascript" src="/js/brushes/shaded.js"></script>
+		<script type="text/javascript" src="/js/brushes/simple.js"></script>
+		<script type="text/javascript" src="/js/brushes/sketchy.js"></script>
+		<script type="text/javascript" src="/js/brushes/squares.js"></script>
+		<script type="text/javascript" src="/js/brushes/web.js"></script>
+		<script type="text/javascript" src="/js/colorutils.js"></script>
+		<script type="text/javascript" src="/js/colorselector.js"></script>
+		<script type="text/javascript" src="/js/palette.js"></script>
+		<script type="text/javascript" src="/js/menu.js"></script>
+		<!--<script type="text/javascript" src="js/about.js"></script>-->	
+		<script type="text/javascript" src="/js/main.js"></script>
+		<script type="text/javascript">
+		context.clearRect(0,0,canvas.width,canvas.height);
+			var img     = new Image();
+	    	img.onload  = function() {
+	        	context.drawImage(img, 0, 0, canvas.width, (img.height/img.width)*canvas.width);
+	    	}
+	    	img.src     = "/images/<%=data.params.user + '-' + data.params.gallery%>-bg.png";
+		</script>
 
   <div align="center" class="toolbar" id="toolbar" style="z-index:13000;">
    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
@@ -306,7 +355,7 @@ function setDraggables() {
 	SET_DHTML(SCALABLE, SCROLL, "<%- il.substring(0, il.length-3)%>");
 }
 resizeFirst();
-setDraggables(); 
+//setDraggables(); 
 pageScroll();
 if(false) showDelete();
 function setHover() {
@@ -320,40 +369,15 @@ function setHover() {
 	}
 }
 //setHover();
-
-  </script>
+</script>
 
 
 <div id="fullScreenImg" style="top:4%;visibility:hidden;z-index:12000;position:fixed;">
 <img class="no-hover" id ="fullScreenImage" style="top:0px;left:0px;position:absolute;z-index:12001;visibility:hidden;" src="" />
 <img class="no-hover" id="closeFullscreenButton" src="/images/close.png" style="cursor:pointer;visibility:hidden;position:absolute;left:-40px;top:0px;z-index:10000;" onclick="closeFullscreen();"/>
 </div>
-<img src="/images/upArrow.png" style="visibility:hidden" />
-<img src="/images/downArrow.png" style="visibility:hidden" />
-		<script type="text/javascript" src="/js/brushes/circles.js"></script>
-		<script type="text/javascript" src="/js/brushes/chrome.js"></script>
-		<script type="text/javascript" src="/js/brushes/fur.js"></script>
-		<script type="text/javascript" src="/js/brushes/grid.js"></script>
-		<script type="text/javascript" src="/js/brushes/longfur.js"></script>
-		<script type="text/javascript" src="/js/brushes/ribbon.js"></script>
-		<script type="text/javascript" src="/js/brushes/shaded.js"></script>
-		<script type="text/javascript" src="/js/brushes/simple.js"></script>
-		<script type="text/javascript" src="/js/brushes/sketchy.js"></script>
-		<script type="text/javascript" src="/js/brushes/squares.js"></script>
-		<script type="text/javascript" src="/js/brushes/web.js"></script>
-		<script type="text/javascript" src="/js/colorutils.js"></script>
-		<script type="text/javascript" src="/js/colorselector.js"></script>
-		<script type="text/javascript" src="/js/palette.js"></script>
-		<script type="text/javascript" src="/js/menu.js"></script>
-		<!--<script type="text/javascript" src="js/about.js"></script>-->	
-		<script type="text/javascript" src="/js/main.js"></script>
-		<script type="text/javascript">
-		context.clearRect(0,0,canvas.width,canvas.height);
-			var img     = new Image();
-	    	img.onload  = function() {
-	        	context.drawImage(img, 0, 0, canvas.width, (img.height/img.width)*canvas.width);
-	    	}
-	    	img.src     = "/images/<%=data.params.user + '-' + data.params.gallery%>-bg.png";
-		</script>
+<!--<img src="/images/upArrow.png" style="visibility:hidden" />
+<img src="/images/downArrow.png" style="visibility:hidden" />-->
+
 </body>
 </html>
