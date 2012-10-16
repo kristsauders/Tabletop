@@ -51,7 +51,7 @@
             $( ".drag" ).resizable({
                 aspectRatio: true,
                 stop: function(event) {
-                    var elements = document.getElementsByTagName("*");
+                    var elements = document.getElementsByClassName("ui-wrapper");
                     var highest_index = 0;
                     for (var i = 0; i < elements.length - 1; i++) {
                         if (parseInt(elements[i].style.zIndex) > highest_index) {
@@ -65,7 +65,7 @@
             $(".ui-wrapper").draggable({
                 zIndex: 15000,
                 stop: function(event) {
-                    var elements = document.getElementsByTagName("*");
+                    var elements = document.getElementsByClassName("ui-wrapper");
                     var highest_index = 0;
                     for (var i = 0; i < elements.length - 1; i++) {
                         if (parseInt(elements[i].style.zIndex) > highest_index) {
