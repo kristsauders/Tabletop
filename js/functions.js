@@ -615,11 +615,11 @@ function newGallerySuccess(user, gallery) {
         setTimeout(function(){
         	window.location = '/' + user + '/' + gallery;
     	}, 1000);
-        }
-function newGallery() {
+}
+function submitNewGallery(gallery) {
     var data = new Object();
     data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
-    data.gallery = prompt("Enter gallery name","");
+    data.gallery = gallery;
     if(data.gallery) {
         $.ajax({
            type: 'POST',
@@ -635,23 +635,97 @@ function newGallery() {
         });
     }
 }
+function newGallery() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Gallery Title</label>\
+                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Create Gallery",
+        modal:true,
+        height:130,
+        width:300,
+    	buttons: {
+    		"Create Gallery": function() {
+    			submitNewGallery($("#gallery").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitNewGallery($("#gallery").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
+}
 function deleteGallerySuccess(user) {
         setTimeout(function(){
         	window.location = '/home/' + user;
     	}, 1000);
         }
-function deleteGallery() {
+function submitDeleteGallery(gallery) {
     var data = new Object();
     data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
-    data.gallery = prompt("Enter gallery","");
+    data.gallery = gallery;
     if(data.gallery) {
         $.get(
            '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase() + '/delete',
-           function(data) {
+           function() {
     	        deleteGallerySuccess(data.user.toLowerCase());
             }
         );
     }
+}
+function deleteGallery() {
+    $("\
+        <form id='login'>\
+            <fieldset>\
+                <label for='name'>Gallery Title</label>\
+                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' />\
+                <input type='submit' style='visibility:hidden;' />\
+            </fieldset>\
+        </form>\
+    ").dialog({
+        title: "Delete Gallery",
+        modal:true,
+        height:130,
+        width:300,
+        buttons: {
+    		"Delete Gallery": function() {
+    			submitDeleteGallery($("#gallery").val());
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    		Cancel: function() {
+    			$(this).dialog( "destroy" );
+    			$(this).remove();
+    		},
+    	},
+    	close: function() {
+    		$(this).dialog( "destroy" );
+    		$(this).remove();
+    	}
+    });
+    $("#login").submit(function(e){
+    	e.preventDefault();
+    	submitDeleteGallery($("#gallery").val());
+    	$(this).dialog( "destroy" );
+    	$(this).remove();
+    });
 }
 function publishGallerySuccess() {
     setTimeout(function(){
