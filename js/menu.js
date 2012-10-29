@@ -20,11 +20,13 @@ Menu.prototype =
 		var option, space, separator, color_width = 15, color_height = 15;
 
 		this.container = document.createElement("div");
-        this.container.innerHTML = 'Background Tools ';
+        this.container.id = 'bgToolbar';
+        this.container.style.visibility = 'hidden';
+        this.container.innerHTML = '';
 		this.container.className = 'gui';
 		this.container.style.position = 'fixed';
 		this.container.style.zIndex = '13000';
-		this.container.style.bottom = '25px';
+		this.container.style.bottom = '0px';
 		
 		this.foregroundColor = document.createElement("canvas");
 		this.foregroundColor.style.marginBottom = '-3px';
@@ -77,6 +79,13 @@ Menu.prototype =
 		this.clear.className = 'button';
 		this.clear.innerHTML = 'Clear';
 		this.container.appendChild(this.clear);
+        
+    	space = document.createTextNode(" ");
+		this.container.appendChild(space);
+        this.close = document.createElement("Close");
+        this.close.className = 'button';
+        this.close.innerHTML = 'Close';
+        this.container.appendChild(this.close);
 
 /*		separator = document.createTextNode(" | ");
 		this.container.appendChild(separator);

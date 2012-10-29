@@ -1,39 +1,215 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<title>TableTop Beta</title>
-</head>
-<body style="background-color:gray;">
-<table width="100%" height="100%">
-  <tr>
-    <td align="center" valign="middle">
-    <br/><br/><br/><br/><br/><br/>
-<div name="users" id="users" style="position:fixed;visibility:visible;left:20%;top:20%;width:60%;z-index:10000;font-family:Arial;font-size:18px;" align="center">
-<b>View public user galleries:</b><br/><br/>
-<table>
-<%
-for(var i=0; i<data.length; i++) {
-      %><tr><td><a href="/<%=data[i]%>/galleries/list"><%=data[i]%></a> &nbsp; &nbsp; &nbsp; </td></tr>
-      <%
-}
-%></table>
-<hr></hr><br/>
-<form name="login" action="/users/list/login" method="post">
-<b>Log in:</b><br/>
-Username: <input type="text" name="user" /><br/>
-Password: <input type="password" name="password" /><br/>
-<input type="submit" value="Submit"/>
-</form>
-<hr></hr><br/>
-<form name="users" action="/users/list/new" method="post">
-<b>Sign up:</b><br/>
-Username: <input type="text" name="user" /><br/>
-Password: <input type="password" name="password" /><br/>
-<input type="submit" value="Submit"/>
-</form></div>
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Photo (Beta)</title>
+        <meta name="description" content="">
+        <meta http-equiv="content-language" content="en" />
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="/css/bootstrap.css">
+        <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
+        <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+        <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+        <script src="/js/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+        <script src="/js/functions.js"></script>
+        <script type="text/javascript" src="/js/patternizer.min.js"></script>
+        <!--Import JQuery.cookie.js-->
+        <script src="http://riak.kristsauders.com/buckets/att-js/keys/jquery.cookie.js"></script>
+        <style>
+            body {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+            .string { color: green; }
+            .number { color: dark#BDBDBD; }
+            .boolean { color: #BDBDBD; }
+            .null { color: magenta; }
+            .key { color: red; }
+            .ui-widget-overlay {
+               background: #111111;
+               opacity: .80;
+               filter: Alpha(Opacity=80);
+            }
+        </style>
+        <script>
+            // Attach JQuery.click() functions to buttons
+            $(document).ready(function(){
+                $("#signup").click(function () {
+                    signup();
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+        <![endif]-->
+        <canvas id="bgCanvas" width="" height="100%" style="z-index:-1;position:fixed;top:0px;"></canvas>
+        <script type="text/javascript">
+            var bgCanvas = document.getElementById('bgCanvas');
+            bgCanvas.width = $(window).width();
+            bgCanvas.height = $(window).height();
+            bgCanvas.patternizer(
+                {
+                stripes : [{
+                        color: '#ffffff',
+                        rotation: 0,
+                        opacity: 4,
+                        mode: 'plaid',
+                        width: 158,
+                        gap: 51,
+                        offset: 31
+                    },
+                    {
+                        color: '#6b6b6b',
+                        rotation: 90,
+                        opacity: 21,
+                        mode: 'plaid',
+                        width: 1,
+                        gap: 34,
+                        offset: 223
+                    },
+                    {
+                        color: '#000000',
+                        rotation: 45,
+                        opacity: 100,
+                        mode: 'plaid',
+                        width: 1,
+                        gap: 2,
+                        offset: 28
+                    },
+                    {
+                        color: '#575757',
+                        rotation: 90,
+                        opacity: 13,
+                        mode: 'normal',
+                        width: 50,
+                        gap: 271,
+                        offset: 190
+                    },
+                    {
+                        color: '#ffffff',
+                        rotation: 90,
+                        opacity: 5,
+                        mode: 'plaid',
+                        width: 44,
+                        gap: 188,
+                        offset: 187
+                    },
+                    {
+                        color: '#484848',
+                        rotation: 45,
+                        opacity: 8,
+                        mode: 'plaid',
+                        width: 25,
+                        gap: 1,
+                        offset: 0
+                    },
+                    {
+                        color: '#000000',
+                        rotation: 0,
+                        opacity: 83,
+                        mode: 'plaid',
+                        width: 252,
+                        gap: 23,
+                        offset: 65
+                    }
+                ],
+                bg : '#ffffff'
+            });
+            var user = '<%=data.user%>';
+        </script>
 
-	</td>
-  </tr>
-</table>
-</body>
+        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="/">Photo (Beta)</a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            <li class="active"><a href="/home/users">Users</a></li>
+                            <% if(data.loggedin) { %>
+                            <li><a href="/<%=data.user%>">Galleries</a></li>
+                            <% } %>
+                            <% if(data.loggedin) { %>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Galleries<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="newGallery();">New Gallery</a></li>
+                                        <li><a href="#" onclick="deleteGallery();">Delete Gallery</a></li>
+                                        <li><a href="#" onclick="publishGallery();">Publish Gallery</a></li>
+                                        <li><a href="#" onclick="unpublishGallery();">Unpublish Gallery</a></li>
+                                        <li class="divider"></li>
+                                        <li class="nav-header">Account</li>
+                                        <li><a href="#" onclick="changePassword();">Change Password</a></li>
+                                        <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Account<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="changePassword();">Change Password</a></li>
+                                        <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
+                                    </ul>
+                                </li>
+                            <% } %>
+                        </ul>
+                        <% if(data.loggedin) { %>
+                            <form class="navbar-form pull-right" action="/users/list/logout" method="POST">
+                            <input type="hidden" name="form" value="true">
+                            <button type="submit" class="btn btn-small btn-primary">Log Out</button>
+                        </form>
+                        <% } else { %>
+                        <form class="navbar-form pull-right" action="/users/list/login" method="POST">
+                            <input class="span2" type="text" name="user" placeholder="Username">
+                            <input class="span2" type="password" name="password" placeholder="Password">
+                            <input type="hidden" name="form" value="true">
+                            <button type="submit" class="btn btn-primary">Sign in</button>
+                        </form>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- Main hero unit for a primary marketing message or call to action -->
+            <div class="hero-unit">
+                <h1>Photo (Beta) <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %></h1><br/>
+                <p>This lists the current users and their public galleries. Sign up to create your own!</p>
+            </div>
+            
+            <!-- Example row of columns -->
+        
+            <div class="row">
+<%
+        var c = 0;
+        for(var i in data.users) {
+            c++;
+%>          <a href="<%='/' + data.users[i]%>" style="text-decoration:none;color:#444444;">
+                <div class="span4" align="center" style="background-color: #eeeeee;-webkit-border-radius: 6px;padding-bottom:20px;
+                                                        -moz-border-radius: 6px;border-radius: 6px;margin-bottom: 30px;">
+                    <h2><%=data.users[i].toUpperCase()%></h2>
+                    <img src="" style="border:2px solid white; z-index:10;width:0px;height:0px;" />
+                </div>
+            </a>
+<%
+        }
+%>
+            </div>
+        </div> 
+
+        <script src="/js/bootstrap.min.js"></script>
+    </body>
 </html>

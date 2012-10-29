@@ -120,6 +120,7 @@ function init()
 	menu.save.addEventListener('touchend', onMenuSave, false);
 	menu.clear.addEventListener('click', onMenuClear, false);
 	menu.clear.addEventListener('touchend', onMenuClear, false);
+    menu.close.addEventListener('click', function(){document.getElementById('bgToolbar').style.visibility = 'hidden';}, false);
 	//menu.about.addEventListener('click', onMenuAbout, false);
 	//menu.about.addEventListener('touchend', onMenuAbout, false);
 	menu.container.addEventListener('mouseover', onMenuMouseOver, false);
@@ -216,7 +217,7 @@ function onWindowResize()
 	SCREEN_HEIGHT = Math.max(
 	        Math.max(document.body.scrollHeight, document.documentElement.scrollHeight),
 	        Math.max(document.body.offsetHeight, document.documentElement.offsetHeight),
-	        Math.max(document.body.clientHeight, document.documentElement.clientHeight))+50;
+	        Math.max(document.body.clientHeight, document.documentElement.clientHeight));
 	
 	menu.container.style.left = ((SCREEN_WIDTH - menu.container.offsetWidth) / 2) + 'px';
 	

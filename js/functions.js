@@ -25,20 +25,20 @@ function submitLogin(user, password) {
 
 function login() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Username</label>\
                 <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='password'>Password</label>\
-                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Login",
     	modal:true,
-    	height:200,
-    	width:300,
+    	height:350,
+    	width:600,
     	buttons: {
     		"Log in": function() {
     			submitLogin($("#name").val(), $("#password").val());
@@ -93,7 +93,7 @@ function submitChangePassword(user, password, newPassword, newPasswordConfirm) {
 
 function changePassword() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Username</label>\
                 <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
@@ -102,15 +102,15 @@ function changePassword() {
                 <label for='newPassword'>New Password</label>\
                 <input type='password' name='newPassword' id='newPassword' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='newPasswordConfirm'>Confirm New Password</label>\
-                <input type='password' name='newPasswordConfirm' id='newPasswordConfirm' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='password' name='newPasswordConfirm' id='newPasswordConfirm' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Change Password",
         modal:true,
-    	height:220,
-    	width:350,
+    	height:400,
+    	width:600,
     	buttons: {
     		"Change Password": function() {
     			submitChangePassword($("#name").val(), $("#password").val(), $("#newPassword").val(), $("#newPasswordConfirm").val());
@@ -136,7 +136,7 @@ function changePassword() {
 }
 
 function logoutSuccess() {
-        setTimeout(function(){window.location.reload(true);}, 1000);
+        setTimeout(function(){window.location = '/';});
     }
 
 function logout() {
@@ -377,36 +377,36 @@ function hideDelete() {
                }
            }, 100);
        }
-        ddpp = dd;
-        dd.obj=null;
-        dd.evt=function(d_e) {};
+//        ddpp = dd;
+//        dd.obj=null;
+//        dd.evt=function(d_e) {};
      }
 }
 
 function closeFullscreen() {
-    dd=ddpp;
-    dd.evt = function(d_e)
-    {
-        this.but = (this.e = d_e || window.event).which || this.e.button || 0;
-        this.button = (this.e.type == 'mousedown')? this.but
-    		: (dd.e && dd.e.button)? dd.e.button
-    		: 0;
-    	this.src = this.e.target || this.e.srcElement || null;
-    	this.src.tag = ("" + (this.src.tagName || this.src)).toLowerCase();
-    	this.x = dd.Int(this.e.pageX || this.e.clientX || 0);
-    	this.y = dd.Int(this.e.pageY || this.e.clientY || 0);
-    	if(dd.ie)
-    	{
-    		this.x += dd.getScrollX() - (dd.ie && !dd.iemac)*1;
-    		this.y += dd.getScrollY() - (dd.ie && !dd.iemac)*1;
-    	}
-    	//this.modifKey = this.e.modifiers? this.e.modifiers&Event.SHIFT_MASK : (this.e.shiftKey || false);
-    	if((this.but==3) || (this.but==2)){
-    		this.modifKey = true;
-    	} else {
-    		this.modifKey = false;
-    	}
-    };
+//    dd=ddpp;
+//    dd.evt = function(d_e)
+//    {
+//        this.but = (this.e = d_e || window.event).which || this.e.button || 0;
+//        this.button = (this.e.type == 'mousedown')? this.but
+//    		: (dd.e && dd.e.button)? dd.e.button
+//    		: 0;
+//    	this.src = this.e.target || this.e.srcElement || null;
+//    	this.src.tag = ("" + (this.src.tagName || this.src)).toLowerCase();
+//    	this.x = dd.Int(this.e.pageX || this.e.clientX || 0);
+//    	this.y = dd.Int(this.e.pageY || this.e.clientY || 0);
+//    	if(dd.ie)
+//    	{
+//    		this.x += dd.getScrollX() - (dd.ie && !dd.iemac)*1;
+//    		this.y += dd.getScrollY() - (dd.ie && !dd.iemac)*1;
+//    	}
+//    	//this.modifKey = this.e.modifiers? this.e.modifiers&Event.SHIFT_MASK : (this.e.shiftKey || false);
+//    	if((this.but==3) || (this.but==2)){
+//    		this.modifKey = true;
+//    	} else {
+//    		this.modifKey = false;
+//    	}
+//    };
 	document.getElementById("fullScreenImage").style.visibility = 'hidden';
    document.getElementById("fullScreenImg").style.visibility = 'hidden';
    if(document.getElementById("overlay")){
@@ -488,7 +488,7 @@ function deleteFullScreenButton(el) {
 }
 function signupSuccess(user) {
         setTimeout(function(){
-        	window.location = '/home/' + user;
+        	window.location = '/' + user;
     	}, 1000);
 }
 function submitSignup(user, email, password) {
@@ -502,7 +502,7 @@ function submitSignup(user, email, password) {
            url: '/users/list/new',
            data: data,
            success: function(response){
-               signupSuccess(data.user.toLowerCase());
+               signupSuccess(user.toLowerCase());
            },
            error: function(jqXHR, textStatus, errorThrown){
                alert(JSON.stringify(jqXHR.responseText));
@@ -513,22 +513,22 @@ function submitSignup(user, email, password) {
 }
 function signup() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Username</label>\
                 <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='email'>Email</label>\
                 <input type='text' name='email' id='email' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='password'>Password</label>\
-                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Sign Up",
         modal:true,
-    	height:200,
-    	width:300,
+    	height:350,
+    	width:600,
     	buttons: {
     		"Sign Up": function() {
     			submitSignup($("#name").val(), $("#email").val(), $("#password").val());
@@ -574,20 +574,20 @@ function submitDeleteAccount(user, password) {
 }
 function deleteAccount() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Username</label>\
                 <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='password'>Password</label>\
-                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' />\
+                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Delete Account",
         modal:true,
-        height:200,
-    	width:300,
+        height:350,
+    	width:600,
     	buttons: {
     		"Delete Account": function() {
     			submitDeleteAccount($("#name").val(), $("#password").val());
@@ -618,15 +618,15 @@ function newGallerySuccess(user, gallery) {
 }
 function submitNewGallery(gallery) {
     var data = new Object();
-    data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
+    //data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = gallery;
     if(data.gallery) {
         $.ajax({
            type: 'POST',
-           url: '/' + data.user.toLowerCase() + '/galleries/new',
+           url: '/' + user.toLowerCase() + '/galleries/new',
            data: data,
            success: function(response){
-               newGallerySuccess(data.user.toLowerCase(), data.gallery.toLowerCase());
+               newGallerySuccess(user.toLowerCase(), data.gallery.toLowerCase());
            },
            error: function(jqXHR, textStatus, errorThrown){
                alert(JSON.stringify(jqXHR.responseText));
@@ -637,18 +637,18 @@ function submitNewGallery(gallery) {
 }
 function newGallery() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Gallery Title</label>\
-                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' />\
+                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Create Gallery",
         modal:true,
-        height:130,
-        width:300,
+        height:200,
+        width:600,
     	buttons: {
     		"Create Gallery": function() {
     			submitNewGallery($("#gallery").val());
@@ -674,36 +674,36 @@ function newGallery() {
 }
 function deleteGallerySuccess(user) {
         setTimeout(function(){
-        	window.location = '/home/' + user;
+        	window.location = '/' + user;
     	}, 1000);
         }
 function submitDeleteGallery(gallery) {
     var data = new Object();
-    data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
+    //data.user = document.URL.split('#')[0].split('?')[0].split('/').pop();
     data.gallery = gallery;
     if(data.gallery) {
         $.get(
-           '/' + data.user.toLowerCase() + '/' + data.gallery.toLowerCase() + '/delete',
+           '/' + user.toLowerCase() + '/' + data.gallery.toLowerCase() + '/delete',
            function() {
-    	        deleteGallerySuccess(data.user.toLowerCase());
+    	        deleteGallerySuccess(user.toLowerCase());
             }
         );
     }
 }
 function deleteGallery() {
     $("\
-        <form id='login'>\
+        <form id='login' align='center'>\
             <fieldset>\
                 <label for='name'>Gallery Title</label>\
-                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' />\
+                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
     ").dialog({
         title: "Delete Gallery",
         modal:true,
-        height:130,
-        width:300,
+        height:200,
+        width:600,
         buttons: {
     		"Delete Gallery": function() {
     			submitDeleteGallery($("#gallery").val());
@@ -783,6 +783,44 @@ $(document).ready(function(){
       }
     );
 });
+// Functions for using a private riak key/value data storage for persistence
+var riak = {
+    get: function(key, callback, errorCallback) {
+        callback = callback || function(data) {
+            alert(JSON.stringify(data));
+        };
+        errorCallback = errorCallback || function(error) {
+            alert(error);
+        };
+        $.ajax({
+            url: 'http://riak.kristsauders.com/buckets/att-js/keys/' + key,
+            type: 'get',
+            success: function(data) {
+                callback(data);
+            },
+            error: function(jqXHR, textStatus, error) {
+                errorCallback(jqXHR.responseText);
+            }
+        });
+    },
+    save: function(key, value, callback, errorCallback) {
+        callback = callback || function(data) {};
+        errorCallback = errorCallback || function(error) {
+            alert(error);
+        };
+        $.ajax({
+            url: 'http://riak.kristsauders.com/buckets/att-js/keys/' + key,
+            type: 'post',
+            data: value,
+            success: function(data) {
+                callback(data);
+            },
+            error: function(jqXHR, textStatus, error) {
+                errorCallback(jqXHR.responseText);
+            }
+        });
+    }
+};
 //var timer;
 //function onResize() {
 //    clearTimeout(timer);

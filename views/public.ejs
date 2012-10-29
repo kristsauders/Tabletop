@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
 <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
 <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
-<script src="/js/jquery.ui.touch-punch.min.js"></script>
+<!--<script src="/js/jquery.ui.touch-punch.min.js"></script>-->
 <script src="/js/functions.js"></script>
         <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 		<style type="text/css">
@@ -45,6 +45,11 @@
                 -webkit-box-shadow: 0px 0px 0px; -moz-box-shadow: 0px 0px 0px; box-shadow: 0px 0px 0px;
             }
             .drag {position: absolute;}
+            .ui-widget-overlay {
+               background: #111111;
+               opacity: .80;
+               filter: Alpha(Opacity=80);
+            }
 </style>
     <script>
         $(function() {
@@ -84,7 +89,7 @@
 
 <body   oncontextmenu="return false;" >
 <img class="no-hover" name="background" id="background" style="width:100%;position:absolute;top:0px;left:0px;" src="/images/<%=data.params.user + '-' + data.params.gallery%>-bg-public.png" border=0/>
-<script type="text/javascript" src="/js/dragdrop.js"></script>
+<!--<script type="text/javascript" src="/js/dragdrop.js"></script>-->
 
 <div class="no-hover" name="overlay" id="overlay" style="left:-50px;top:-50px;position:fixed;visibility:hidden;width:150%;height:150%;z-index:11000;background-color:gray;opacity:0.95;" ></div>
 

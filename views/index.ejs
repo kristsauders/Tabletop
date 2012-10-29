@@ -1,18 +1,31 @@
 <!DOCTYPE HTML>
-<html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <title>Photo (Beta)</title>
+<meta name="description" content="">
+<meta http-equiv="content-language" content="en" />
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/css/bootstrap.css">
+<link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
 <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
 <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
-<script src="/js/jquery.ui.touch-punch.min.js"></script>
+<script src="/js/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+<!--<script src="/js/jquery.ui.touch-punch.min.js"></script>-->
+<!--Import JQuery.cookie.js-->
+<script src="http://riak.kristsauders.com/buckets/att-js/keys/jquery.cookie.js"></script>
     	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 		<style type="text/css">
 			*
 			{
 				color: #444;
-				font-family: Monospace;
-				font-size: 12px;
+				/*font-family: Monospace;*/
+				/*font-size: 12px;*/
 			}
 			
 			body
@@ -89,6 +102,16 @@
                 opacity: 1;  
                 -webkit-box-shadow: 0px 0px 0px; -moz-box-shadow: 0px 0px 0px; box-shadow: 0px 0px 0px;
             }
+            .ui-widget-overlay {
+               background: #111111;
+               opacity: .80;
+               filter: Alpha(Opacity=80);
+            }
+            .string { color: green; }
+            .number { color: dark#BDBDBD; }
+            .boolean { color: #BDBDBD; }
+            .null { color: magenta; }
+            .key { color: red; }
 .drag {position: absolute;}
 //img {
 //    -moz-box-shadow: 1px 1px 12px #999;
@@ -122,7 +145,7 @@ height:25px;
 background-color:gray; 
 opacity:0.95;
 position:fixed;
-font-family:Arial;
+/*font-family:Arial;*/
 font-size:16px;
 z-index:5000;
 	-moz-box-shadow: 1px 1px 25px #999;
@@ -231,10 +254,88 @@ function goHome() {
             fullScreen(event.target);
         });
     });
+    // Attach JQuery.click() functions to buttons
+    $(document).ready(function(){
+        $("#showBgToolbar").click(function () {
+            document.getElementById('bgToolbar').style.visibility = 'visible';
+            
+        });
+    });
+    var user = '<%=data.user%>';
 </script>
 </head>
 
 <body oncontextmenu="return false;" >
+
+        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="/">Photo (Beta)</a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            <li><a href="/home/users">Users</a></li>
+                            <li><a href="/<%=data.params.user%>">Galleries</a></li>
+                            <li class="active"><a href="#">Gallery</a></li>
+                            <% if(data.loggedin) { %>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Images<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="showUpload();">Upload Images</a></li>
+                                        <li><a href="#" onclick="showDelete();">Select &amp; Delete Images</a></li>
+                                        <li><a href="#" onclick="showLinkUpdate();">Update Image Link</a></li>
+                                        <li><a href="#" onclick="drawImage();">Draw an Image</a></li>
+                                        <li><a href="#" id="showBgToolbar">Show Background Tools</a></li>
+                                        <li class="divider"></li>
+                                        <li class="nav-header">Account</li>
+                                        <li><a href="#" onclick="changePassword();">Change Password</a></li>
+                                        <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Galleries<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="newGallery();">New Gallery</a></li>
+                                        <li><a href="#" onclick="deleteGallery();">Delete Gallery</a></li>
+                                        <li><a href="#" onclick="publishGallery();">Publish Gallery</a></li>
+                                        <li><a href="#" onclick="unpublishGallery();">Unpublish Gallery</a></li>
+                                        <li class="divider"></li>
+                                        <li class="nav-header">Account</li>
+                                        <li><a href="#" onclick="changePassword();">Change Password</a></li>
+                                        <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Account<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="changePassword();">Change Password</a></li>
+                                        <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
+                                    </ul>
+                                </li>
+                            <% } %>
+                        </ul>
+                        <% if(data.loggedin) { %>
+                            <form class="navbar-form pull-right" action="/users/list/logout" method="POST">
+                            <input type="hidden" name="form" value="true">
+                            <button type="submit" class="btn btn-small btn-primary">Log Out</button>
+                        </form>
+                        <% } else { %>
+                        <form class="navbar-form pull-right" action="/users/list/login" method="POST">
+                            <input class="span2" type="text" name="user" placeholder="Username">
+                            <input class="span2" type="password" name="password" placeholder="Password">
+                            <input type="hidden" name="form" value="true">
+                            <button type="submit" class="btn btn-primary">Sign in</button>
+                        </form>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Background drawing code here -->
     	<script type="text/javascript" src="/js/brushes/circles.js"></script>
@@ -263,6 +364,7 @@ function goHome() {
 	    	img.src     = "/images/<%=data.params.user + '-' + data.params.gallery%>-bg.png";
 		</script>
 
+<!-- The old menu bar at the bottom 
   <div align="center" class="toolbar" id="toolbar" style="z-index:13000;">
    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
   <input type="button" onclick="goHome();" value="Home" />
@@ -274,8 +376,9 @@ function goHome() {
   <input type="button" id="publishGallery" onclick="publishGallery();" value="Publish Gallery" />
   <input type="button" id="unpublishGallery" onclick="unpublishGallery();" value="Unpublish Gallery" />
   </div>
+-->
 
-<script type="text/javascript" src="/js/wz_dragdrop.js"></script>
+<!--<script type="text/javascript" src="/js/wz_dragdrop.js"></script>-->
 
 
 <table width="100%" height="100%">
@@ -392,5 +495,6 @@ function setHover() {
 <!--<img src="/images/upArrow.png" style="visibility:hidden" />
 <img src="/images/downArrow.png" style="visibility:hidden" />-->
 
+<script src="/js/bootstrap.min.js"></script>
 </body>
 </html>

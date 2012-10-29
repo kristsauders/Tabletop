@@ -31,3 +31,9 @@
 {"ts":1349309337040,"patch":[[{"diffs":[[0,"        "],[-1,"//"],[0,"alert('S"]],"start1":11188,"start2":11188,"length1":18,"length2":16}]],"length":14605,"saved":false}
 {"contributors":[],"silentsave":false,"ts":1349901677930,"patch":[[{"diffs":[[0,"wResize("],[-1,")\n{"],[1,"arg)\n{\n    location.reload();"],[0,"\n\tSCREEN"]],"start1":6709,"start2":6709,"length1":19,"length2":45}]],"length":14631,"saved":false}
 {"ts":1349901749582,"patch":[[{"diffs":[[0,"ize("],[-1,"arg)\n{\n    location.reload();"],[1,")\n{"],[0,"\n\tSC"]],"start1":6713,"start2":6713,"length1":37,"length2":11}]],"length":14605,"saved":false}
+{"contributors":[],"silentsave":false,"ts":1351540864087,"patch":[[{"diffs":[[0,"Height))"],[-1,"+50"],[0,";\n\t\n\tmen"]],"start1":7032,"start2":7032,"length1":19,"length2":16}]],"length":14602,"saved":false}
+{"contributors":[],"silentsave":false,"ts":1351543496219,"patch":[[{"diffs":[[0,"uClear, false);\n"],[1,"    menu.close.addEventListener('click', function(){alert('hi');}, false);\n"],[0,"\t//menu.about.ad"]],"start1":4079,"start2":4079,"length1":32,"length2":107}]],"length":14677,"saved":false}
+{"ts":1351543519320,"patch":[[{"diffs":[[0,"n(){"],[-1,"alert('hi')"],[1,"this.container.style.visibility = 'hidden'"],[0,";}, "]],"start1":4143,"start2":4143,"length1":19,"length2":50}]],"length":14708,"saved":false}
+{"ts":1351543533593,"patch":[[{"diffs":[[0,"(){this."],[-1,"container."],[0,"style.vi"]],"start1":4144,"start2":4144,"length1":26,"length2":16}]],"length":14698,"saved":false}
+{"ts":1351543543611,"patch":[[{"diffs":[[0,"ion("],[1,"this"],[0,"){this."],[1,"container."],[0,"styl"]],"start1":4141,"start2":4141,"length1":15,"length2":29}]],"length":14712,"saved":false}
+{"ts":1351543573399,"patch":[[{"diffs":[[0,"ion("],[-1,"this){this.container"],[1,"){document.getElementById('bgToolbar')"],[0,".sty"]],"start1":4141,"start2":4141,"length1":28,"length2":46}]],"length":14730,"saved":false}

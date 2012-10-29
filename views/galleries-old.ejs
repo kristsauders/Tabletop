@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>TableTop Beta</title>
+</head>
+<body style="background-color:gray;">
+<table width="100%" height="100%">
+  <tr>
+    <td align="center" valign="middle">
+    <br/><br/><a href="/">Back to users</a><br/><br/><br/><br/>
+<div name="galleries" id="galleries" style="position:fixed;visibility:visible;left:20%;top:20%;width:60%;z-index:10000;font-family:Arial;font-size:18px;" align="center">
+<table>
+<%
+for(var i=0; i<data.galleries.length; i++) {
+	  %><tr><td><a href="<%=data.galleries[i]%>"><%=data.galleries[i].split('/').pop()%></a> &nbsp; &nbsp; &nbsp; </td><td> <a href="<%=data.galleries[i]%>/delete">Delete</a></td></tr>
+      <%
+}
+%></table>
+<hr></hr><br/>
+<form name="galleries" action="/<%=data.user%>/galleries/new" method="post">
+<b>Enter new gallery name to create it:</b><br/>
+<input type="text" name="gallery" /><br/>
+<input type="submit" value="Submit"/>
+</form></div>
+
+	</td>
+  </tr>
+</table>
+</body>
+</html>
