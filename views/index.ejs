@@ -201,7 +201,7 @@ function updateLink(el) {
   myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/updateLink";
     var myInput = document.createElement("input") ;
     myInput.setAttribute("name", "file") ;
-    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myInput.setAttribute("value", el.parentNode.firstChild.id);
     myForm.appendChild(myInput) ;
     var myInput5 = document.createElement("input") ;
     myInput5.setAttribute("name", "link") ;
