@@ -299,8 +299,8 @@ function showDelete() {
     	x[i].parentNode.appendChild(element);
 	}
 }
-	document.getElementById("adminDeleteButton").onclick = hideDelete;
-	document.getElementById("adminDeleteButton").value = "Done deleting";
+//	document.getElementById("adminDeleteButton").onclick = hideDelete;
+//	document.getElementById("adminDeleteButton").value = "Done deleting";
 	
 }
 
@@ -312,8 +312,8 @@ function hideDelete() {
 			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
 		}
     }
-	document.getElementById("adminDeleteButton").onclick = showDelete;
-	document.getElementById("adminDeleteButton").value = "Delete image";
+//	document.getElementById("adminDeleteButton").onclick = showDelete;
+//	document.getElementById("adminDeleteButton").value = "Delete image";
 }
 
  function fullScreen(el) {
@@ -427,8 +427,8 @@ function hideLinkUpdate() {
 			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
 		}
     }
-	document.getElementById("updateLinkButton").onclick = showLinkUpdate;
-	document.getElementById("updateLinkButton").value = "Update Image Link";
+//	document.getElementById("updateLinkButton").onclick = showLinkUpdate;
+//	document.getElementById("updateLinkButton").value = "Update Image Link";
 }
 
 function showLinkUpdate() {
@@ -447,8 +447,8 @@ function showLinkUpdate() {
     	x[i].parentNode.appendChild(element);
     	}
     }
-	document.getElementById("updateLinkButton").onclick = hideLinkUpdate;
-	document.getElementById("updateLinkButton").value = "Cancel";
+//	document.getElementById("updateLinkButton").onclick = hideLinkUpdate;
+//	document.getElementById("updateLinkButton").value = "Cancel";
 	
 }
 
