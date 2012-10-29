@@ -613,8 +613,9 @@ app.post('/:user/:gallery/upsert', function(req, res) {
 
 app.post('/:user/:gallery/updateLink', function(req, res) {
     console.log('Link update');
+    console.log(req.body.link);
     var user = req.params.user.toLowerCase();
-    if(req.session.user==user) {
+    if((req.session.user==user) && (req.body.link!='null')) {
         db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
@@ -645,12 +646,12 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
     		});
     	});
     } else {
-        res.send(400, 'Sorry, but you do not have access to update links for this gallery.');
+        res.redirect('back');
     }
 });
 
 app.post('/:user/:gallery/photos/delete', function(req, res) {
-    console.log('delete photo');
+    console.log('delete photo ' + req.body.file + ' by ' + req.params.user + ' from gallery ' + req.params.gallery);
     var user = req.params.user.toLowerCase();
     if(req.session.user==user) {
     	db.open(function(err, db) {
@@ -661,7 +662,7 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
     				var gal = document.galleries[req.params.gallery];
     				var p = 0;
     				for (var i in gal) {
-    					if (gal[p].source.split('/').pop() == req.body.file) {
+    					if (gal[p].source.split('/').pop().replace('.jpg', '').replace('.png', '') == req.body.file.replace('.jpg', '').replace('.png', '')) {
     						break;
     					}
     					else {

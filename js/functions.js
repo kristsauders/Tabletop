@@ -287,7 +287,7 @@ function showDelete() {
 	x = document.getElementsByTagName("img");
 	for (i=0;i<x.length;i++)
 	{
-	if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+	if(x[i]) {
     	var element = document.createElement("input");
     	element.setAttribute("type","button");
     	element.setAttribute("value","x");
@@ -296,8 +296,10 @@ function showDelete() {
     	element.style.position = 'absolute';
     	element.style.left = '0px';
     	element.style.top = '0px';
+        element.setAttribute("class", 'delX');
     	x[i].parentNode.appendChild(element);
 	}
+    setTimeout(function(){ hideDelete(); }, 6000);
 }
 //	document.getElementById("adminDeleteButton").onclick = hideDelete;
 //	document.getElementById("adminDeleteButton").value = "Done deleting";
@@ -305,13 +307,14 @@ function showDelete() {
 }
 
 function hideDelete() {
-	x = document.getElementsByTagName("img");
-	for (i=0;i<x.length;i++)
-	{
-		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
-			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
-		}
-    }
+    $('.delX').remove();
+//	x = document.getElementsByTagName("img");
+//	for (i=0;i<x.length;i++)
+//	{
+//		if(x[i]) {
+//			x[i].parentNode.removeChild(x[i].parentNode.firstChild);
+//		}
+//    }
 //	document.getElementById("adminDeleteButton").onclick = showDelete;
 //	document.getElementById("adminDeleteButton").value = "Delete image";
 }
@@ -420,13 +423,14 @@ function success() {
 }
 
 function hideLinkUpdate() {
-    x = document.getElementsByTagName("img");
-	for (i=0;i<x.length;i++)
-	{
-		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
-			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
-		}
-    }
+    $('.delLinkX').remove();
+//    x = document.getElementsByTagName("img");
+//	for (i=0;i<x.length;i++)
+//	{
+//		if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+//			x[i].parentNode.removeChild(x[i].parentNode.lastChild);
+//		}
+//    }
 //	document.getElementById("updateLinkButton").onclick = showLinkUpdate;
 //	document.getElementById("updateLinkButton").value = "Update Image Link";
 }
@@ -435,7 +439,7 @@ function showLinkUpdate() {
     x = document.getElementsByTagName("img");
 	for (i=0;i<x.length;i++)
 	{
-    	if(x[i].name.split("jpgdivNI")[1]=="mG" || x[i].name.split("pngdivNI")[1]=="mG") {
+    	if(x[i]) {
     	var element = document.createElement("input");
     	element.setAttribute("type","button");
     	element.setAttribute("value","This");
@@ -444,9 +448,11 @@ function showLinkUpdate() {
     	element.style.position = 'absolute';
     	element.style.left = '0px';
     	element.style.top = '0px';
+        element.setAttribute("class", "delLinkX");
     	x[i].parentNode.appendChild(element);
     	}
     }
+    setTimeout(function() { hideLinkUpdate(); }, 6000);
 //	document.getElementById("updateLinkButton").onclick = hideLinkUpdate;
 //	document.getElementById("updateLinkButton").value = "Cancel";
 	

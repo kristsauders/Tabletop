@@ -163,7 +163,7 @@ function deleteImage(el) {
   myForm.action = "/<%=data.params.user + '/' + data.params.gallery%>/photos/delete";
     var myInput = document.createElement("input") ;
     myInput.setAttribute("name", "file") ;
-    myInput.setAttribute("value", el.parentNode.id.substring(0,el.parentNode.id.length-3));
+    myInput.setAttribute("value", el.parentNode.firstChild.id);
     myForm.appendChild(myInput) ;
     var myInput5 = document.createElement("input") ;
     myInput5.setAttribute("name", "deleteIsOn") ;
@@ -208,8 +208,10 @@ function updateLink(el) {
     myInput5.setAttribute("value", prompt("Link", ""));
     myForm.appendChild(myInput5) ;
   document.body.appendChild(myForm) ;
-  myForm.submit() ;
-  document.body.removeChild(myForm) ;
+  if(myInput5.getAttribute("value").length>3) {
+        myForm.submit();
+        document.body.removeChild(myForm);
+  }
 }
 function goHome() {
   saveToLocalStorage();
