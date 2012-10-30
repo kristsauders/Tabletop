@@ -175,7 +175,8 @@
                     <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %>
                     <% if(data.loggedin) { %><button class="btn btn-large btn-success" onclick="newGallery();">Create a New Gallery  »</button> <% } %>
                 </h1><br/>
-                <p>These are the galleries created by <script>document.write(window.location.toString().split('/').pop().toTitleCase());</script>.</p>
+                <p>These are the galleries created by <script>document.write(window.location.toString().split('/').pop().toTitleCase());</script>. 
+                    <% if(!data.loggedin) { %>Sign up to create your own!<% } %></p>
             </div>
             
             <!-- Example row of columns -->

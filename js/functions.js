@@ -788,6 +788,10 @@ $(document).ready(function(){
           $(this).next().remove('.imgTitle');
       }
     );
+    // Attach JQuery.click() functions to buttons
+    $("#signup").click(function() {
+        signup();
+    });
 });
 // Functions for using a private riak key/value data storage for persistence
 var riak = {
