@@ -171,14 +171,12 @@
 <br/><br/><br/>
         <div class="container">
 
-            <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="hero-unit">
-                <h1>Photo (Beta) <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %></h1><br/>
+                <h1>Photo (Beta) <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %>
+                    <% if(data.loggedin) { %><button class="btn btn-large btn-success" onclick="newGallery();">Create a New Gallery  »</button> <% } %></h1><br/>
                 <p>This lists the current users and their public galleries. <% if(!data.loggedin) { %>Sign up to create your own!<% } %></p>
             </div>
-            
-            <!-- Example row of columns -->
-        
+                    
             <div class="row">
 <%
         var c = 0;
