@@ -357,9 +357,6 @@ app.get('/home/users', function(req, res) {
                 for (var i = 0; i < document.length; i++) {
                     users[i] = document[i].user;
                 }
-                users[i+1] = 'test';
-                users[i+2] = 'test2';
-                users[i+3] = 'test3';
                 var loggedin = false;
                 if(req.session.user) loggedin = true;
                 res.render('users', {

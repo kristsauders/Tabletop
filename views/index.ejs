@@ -269,7 +269,6 @@ function goHome() {
 
 <body oncontextmenu="return false;" >
 
-        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
@@ -283,7 +282,7 @@ function goHome() {
                         <ul class="nav">
                             <li><a href="/home/users">Users</a></li>
                             <li><a href="/<%=data.params.user%>">Galleries</a></li>
-                            <li class="active"><a href="#">Gallery</a></li>
+                            <li class="active"><a href="#"><script>document.write(window.location.toString().split('/').pop().toTitleCase())</script></a></li>
                             <% if(data.loggedin) { %>
                                 <li class="dropdown">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Images<b class="caret"></b></a>

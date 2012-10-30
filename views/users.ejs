@@ -22,7 +22,7 @@
         <script src="http://riak.kristsauders.com/buckets/att-js/keys/jquery.cookie.js"></script>
         <style>
             body {
-                padding-top: 60px;
+                padding-top: 0px;
                 padding-bottom: 40px;
             }
             .string { color: green; }
@@ -125,7 +125,6 @@
             var user = '<%=data.user%>';
         </script>
 
-        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
@@ -177,13 +176,13 @@
                 </div>
             </div>
         </div>
-
+<br/><br/><br/>
         <div class="container">
 
             <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="hero-unit">
                 <h1>Photo (Beta) <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %></h1><br/>
-                <p>This lists the current users and their public galleries. Sign up to create your own!</p>
+                <p>This lists the current users and their public galleries. <% if(!data.loggedin) { %>Sign up to create your own!<% } %></p>
             </div>
             
             <!-- Example row of columns -->
@@ -196,7 +195,7 @@
 %>          <a href="<%='/' + data.users[i]%>" style="text-decoration:none;color:#444444;">
                 <div class="span4" align="center" style="background-color: #eeeeee;-webkit-border-radius: 6px;padding-bottom:20px;
                                                         -moz-border-radius: 6px;border-radius: 6px;margin-bottom: 30px;">
-                    <h2><%=data.users[i].toUpperCase()%></h2>
+                    <h2><script>document.write('<%=data.users[i]%>'.toTitleCase());</script></h2>
                     <img src="" style="border:2px solid white; z-index:10;width:0px;height:0px;" />
                 </div>
             </a>

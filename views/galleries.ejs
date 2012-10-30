@@ -22,7 +22,7 @@
         <script src="http://riak.kristsauders.com/buckets/att-js/keys/jquery.cookie.js"></script>
         <style>
             body {
-                padding-top: 60px;
+                padding-top: 0px;
                 padding-bottom: 40px;
             }
             .string { color: green; }
@@ -117,8 +117,7 @@
             var user = '<%=data.user%>';
         </script>
 
-        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar navbar-inverse navbar-fixed-top" id="navbar">
             <div class="navbar-inner">
                 <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -167,16 +166,16 @@
                 </div>
             </div>
         </div>
-
+<br/><br/><br/>
         <div class="container">
 
             <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="hero-unit">
-                <h1>Photo (Beta) 
+                <h1><script>document.write(window.location.toString().split('/').pop().toTitleCase());</script>
                     <% if(!data.loggedin) { %><button class="btn btn-large btn-success" id="signup">Sign Up Now  »</button> <% } %>
                     <% if(data.loggedin) { %><button class="btn btn-large btn-success" onclick="newGallery();">Create a New Gallery  »</button> <% } %>
                 </h1><br/>
-                <p>These are the galleries that belong to this user.</p>
+                <p>These are the galleries created by <script>document.write(window.location.toString().split('/').pop().toTitleCase());</script>.</p>
             </div>
             
             <!-- Example row of columns -->
@@ -193,7 +192,7 @@
             <a href="<%='/' + data.params.user + '/' + i%>" style="text-decoration:none;color:#444444;">
                 <div class="span4" align="center" style="background-color: #eeeeee;-webkit-border-radius: 6px;padding-bottom:20px;
                                                         -moz-border-radius: 6px;border-radius: 6px;margin-bottom: 30px;">
-                    <h2><%=i.toUpperCase()%></h2>
+                    <h2><script>document.write('<%=i%>'.toTitleCase());</script></h2>
                     <img src="<%=source.split('.')[0]+'-small.'+source.split('.')[1]%>" style="border:2px solid white; z-index:10;width:300px;height:200px;" />
                 </div>
             </a>
