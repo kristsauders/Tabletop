@@ -421,6 +421,7 @@ app.get('/:user', function(req, res) {
         				res.render('galleries', {
         					layout: false,
         					data: {
+                                user: req.session.user,
             					params: {'user':req.params.user},
                                 galleries: document[j].galleries,
                                 loggedin: loggedin
@@ -530,6 +531,7 @@ app.get('/:user/:gallery', function(req, res) {
     							layout: false,
     							data: {
     								images: document.galleries[gallery],
+                                    user: req.session.user,
     								params: req.params,
                                     loggedin: loggedin
     							}
@@ -554,6 +556,7 @@ app.get('/:user/:gallery', function(req, res) {
     							layout: false,
     							data: {
     								images: document.galleries[gallery],
+                                    user: req.session.user,
     								params: req.params
     							}
     						});
