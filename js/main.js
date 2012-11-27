@@ -546,7 +546,7 @@ function onCanvasTouchEnd( event )
 
 function saveToLocalStorage()
 {
-	localStorage.canvas = canvas.toDataURL('image/png');
+	//localStorage.canvas = canvas.toDataURL('image/png');
 }
 
 function flatten()

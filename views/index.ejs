@@ -18,7 +18,7 @@
 <script src="/js/modernizr-2.6.1-respond-1.1.0.min.js"></script>
 <!--<script src="/js/jquery.ui.touch-punch.min.js"></script>-->
 <!--Import JQuery.cookie.js-->
-<script src="http://riak.kristsauders.com/buckets/att-js/keys/jquery.cookie.js"></script>
+<script src="/js/jquery.cookie.js"></script>
     	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 		<style type="text/css">
 			*
@@ -281,30 +281,30 @@ function goHome() {
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <li><a href="/home/users">Users</a></li>
-                            <li><a href="/<%=data.params.user%>">Galleries</a></li>
+                            <li><a href="/<%=data.params.user%>">My Galleries</a></li>
                             <li class="active"><a href="#"><script>document.write(window.location.toString().split('/').pop().toTitleCase())</script></a></li>
                             <% if(data.loggedin) { %>
+                                <li><a href="#" onclick="showUpload();">Upload Images</a></li>
                                 <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Images<b class="caret"></b></a>
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Image &amp; Background<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="#" onclick="showUpload();">Upload Images</a></li>
-                                        <li><a href="#" onclick="showDelete();">Select &amp; Delete Images</a></li>
-                                        <li><a href="#" onclick="showLinkUpdate();">Update Image Link</a></li>
+                                        <li><a href="#" onclick="showDelete();">Delete an Image</a></li>
+                                        <li><a href="#" onclick="showLinkUpdate();">Set Image Link</a></li>
                                         <li><a href="#" onclick="drawImage();">Draw an Image</a></li>
-                                        <li><a href="#" id="showBgToolbar">Show Background Tools</a></li>
+                                        <li><a href="#" id="showBgToolbar">Background Tools</a></li>
                                     </ul>
                                 </li>
                                 <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Galleries<b class="caret"></b></a>
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Publishing<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="publishGallery();">Publish Gallery</a></li>
+                                        <li><a href="#" onclick="unpublishGallery();">Make Gallery Private</a></li>
                                         <li><a href="#" onclick="newGallery();">New Gallery</a></li>
                                         <li><a href="#" onclick="deleteGallery();">Delete Gallery</a></li>
-                                        <li><a href="#" onclick="publishGallery();">Publish Gallery</a></li>
-                                        <li><a href="#" onclick="unpublishGallery();">Unpublish Gallery</a></li>
                                     </ul>
                                 </li>
                                 <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Account<b class="caret"></b></a>
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="#" onclick="changePassword();">Change Password</a></li>
                                         <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
@@ -354,7 +354,8 @@ function goHome() {
 	    	img.onload  = function() {
 	        	context.drawImage(img, 0, 0, canvas.width, (img.height/img.width)*canvas.width);
 	    	}
-	    	img.src     = "/images/<%=data.params.user + '-' + data.params.gallery%>-bg.png";
+            img.crossOrigin = '';
+	    	img.src     = "<%=data.storage + data.params.user + '-' + data.params.gallery%>-bg.png";
 		</script>
 
 <!-- The old menu bar at the bottom 
@@ -411,15 +412,15 @@ for(var i in data.images) {
     }
     if((data.images[i].width<400) && (data.images[i].height<400)) {
 %>
-<img src="<%=data.images[i].source.split('.')[0]+'-small.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<img src="<%=data.images[i].source.replace('.jpg', '-small.jpg')%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
 <% 
 } else if((data.images[i].width<900) && (data.images[i].height<900)) {
 %>
-<img src="<%=data.images[i].source.split('.')[0]+'-medium.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<img src="<%=data.images[i].source.replace('.jpg', '-medium.jpg')%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
 <%
 } else {
 %>
-<img src="<%=data.images[i].source.split('.')[0]+'-large.'+data.images[i].source.split('.')[1]%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
+<img src="<%=data.images[i].source.replace('.jpg', '-large.jpg')%>" style="z-index:<%=data.images[i].z%>;width:<%=Math.round(data.images[i].width)%>px;height:<%=Math.round(data.images[i].height)%>px;left:<%=Math.round(data.images[i].left)%>px;top:<%=Math.round(data.images[i].top)%>px;" class="drag" id="<%=data.images[i].source.split('/').pop()%>" />
 <%
 }
 il += data.images[i].source.split('/').pop() + '","';

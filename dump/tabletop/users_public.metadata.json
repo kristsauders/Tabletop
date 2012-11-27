@@ -1,1 +1,0 @@
-{options : { "create" : "users_public", undefined, undefined }, indexes:[{ "v" : 1, "key" : { "_id" : 1 }, "ns" : "tabletop.users_public", "name" : "_id_" }]}

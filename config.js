@@ -4,6 +4,7 @@ config.db = {};
 config.im = {};
 config.email = {};
 config.app = {};
+config.storage = {};
 
 config.db.url = '127.0.0.1';
 config.db.prt = 27017;
@@ -12,6 +13,9 @@ config.im.convert = '/usr/bin/convert';
 config.email.username = 'kristsauders@gmail.com';
 config.email.password = '';
 config.app.prt = 8080;
+
+// Base URL for storing and displaying images. Make sure to use a trailing slash.
+config.storage.url = 'http://riak.kristsauders.com/buckets/images/keys/';
 
 // OSX ImageMagick paths
 //config.im.identify = '/opt/local/bin/identify';
