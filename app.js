@@ -17,7 +17,7 @@ var db = new mongo.Db('tabletop', new mongo.Server(config.db.url, config.db.prt,
     	auto_reconnect: true
 	}), {});
 
-//Configure path to ImageMagick
+//Configure path to ImageMagick, should be unnecessary
 im.identify.path = config.im.identify;
 im.convert.path = config.im.convert;
 
