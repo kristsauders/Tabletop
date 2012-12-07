@@ -22,6 +22,9 @@
         <script src="/js/jquery.cookie.js"></script>
         <style>
             body {
+                background-image:url('/pngs/crissXcross.png');
+                background-repeat:repeat;
+                background-attachment:fixed;
                 padding-top: 0px;
                 padding-bottom: 40px;
             }
@@ -41,7 +44,7 @@
         <!--[if lt IE 7]>
             <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
         <![endif]-->
-        <canvas id="bgCanvas" width="" height="100%" style="z-index:-1;position:fixed;top:0px;"></canvas>
+        <!--<canvas id="bgCanvas" width="" height="100%" style="z-index:-1;position:fixed;top:0px;"></canvas>
         <script type="text/javascript">
             var bgCanvas = document.getElementById('bgCanvas');
             bgCanvas.width = $(window).width();
@@ -114,6 +117,8 @@
                 ],
                 bg : '#ffffff'
             });
+        </script>-->
+        <script>
             var user = '<%=data.user%>';
         </script>
 

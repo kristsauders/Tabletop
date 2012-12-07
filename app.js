@@ -12,10 +12,26 @@ var express = require('express'),
     request = require('request'),
     config = require('./config.js'),
 	im = require('imagemagick');
-    
-var db = new mongo.Db('tabletop', new mongo.Server(config.db.url, config.db.prt, {
+
+if(process.env.MONGOLAB_URI) {
+    console.log('Found MongoLab URI environment variable, using its settings.');
+    var mu = process.env.MONGOLAB_URI;
+    config.db.url = mu.split(':')[2].split('@')[1];
+    config.db.prt = parseInt(mu.split(':')[3].split('/')[0]);
+    config.db.name = mu.split('/').pop();
+    config.db.username = mu.split(':')[1].replace('/', '').replace('/', '');
+    config.db.pwd = mu.split(':')[2].split('@')[0];
+}
+
+var db = new mongo.Db(config.db.name, new mongo.Server(config.db.url, config.db.prt, {
     	auto_reconnect: true
 	}), {});
+
+db.open(function(err, db) {
+    db.authenticate(config.db.username, config.db.pwd, function(err, result) {
+        console.log('Successfully opened database connection and authenticated.');
+    });
+});
 
 //Configure path to ImageMagick, should be unnecessary
 im.identify.path = config.im.identify;
@@ -25,7 +41,11 @@ app.use(express.cookieParser());
 app.use(express.session({
 	secret: "thisIsSparta!",
     store: new MongoStore({
-      db: 'tabletop',
+      db: config.db.name,
+      host: config.db.url,
+      port: config.db.prt,
+      username: config.db.username,
+      password: config.db.pwd,
       auto_reconnect: true
     })
 }));
@@ -37,7 +57,28 @@ app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/css', express.static(__dirname + '/css'));
-app.use('/images', express.static(__dirname + '/images'));
+app.use('/pngs', express.static(__dirname + '/pngs'));
+//app.use('/images', express.static(__dirname + '/images'));
+
+// Serve images out of MongoDB
+app.get('/images/:name', function(req, res) {
+    db.collection('images', function(err, collection) {
+        collection.findOne({
+            "name": req.params.name
+        }, function(err, document) {
+            if(document) {
+                var im = new Buffer(document.data, 'base64');
+                res.writeHead(200, {
+                  'Content-Type': 'image/jpeg',
+                  'Content-Length': im.length
+                });
+                res.end(im);
+            } else {
+                res.send(404);
+            }
+        });
+    });
+});
 
 app.get('/:user/:gallery/draw', function(req, res) {
     res.render('draw', {
@@ -51,7 +92,7 @@ app.post('/:user/:gallery/publish', function(req, res) {
     var user = req.params.user.toLowerCase();
     var gallery = req.params.gallery.toLowerCase();
     if(req.session.user==user) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -68,17 +109,37 @@ app.post('/:user/:gallery/publish', function(req, res) {
             					upsert: true,
             					safe: true
             				}, function(err, document) {
-                                db.close();
-                                res.send(200, {success:true});
-                                var pp = config.storage.url + user + '-' + gallery + '-bg.png';
-                                var pb = config.storage.url + user + '-' + gallery + '-bg-public.png';
-                                request.get(pp).pipe(request.post(pb));
+//                                db.close();
+//                                var pp = config.storage.url + user + '-' + gallery + '-bg.png';
+//                                var pb = config.storage.url + user + '-' + gallery + '-bg-public.png';
+//                                request.get(pp).pipe(request.post(pb));
+                                    db.collection('images', function(err, collection) {
+                                        collection.findOne({
+                                            "name": user + '-' + gallery + '-bg.png'
+                                        }, function(err, document) {
+                                            if(document) {
+                                                    collection.update({
+                                                        "name": user + '-' + gallery + '-bg-public.png'
+                                                    }, {
+                                                        "name": user + '-' + gallery + '-bg-public.png',
+                                                        "data": document.data
+                                                    }, {
+                                                        upsert: true,
+                                                        safe: true
+                                                    }, function(err, document) {
+                                                        res.send(200, {success:true});
+                                                    });
+                                            } else {
+                                                res.send(404);
+                                            }
+                                        });
+                                    });
             				});
             			});
         			});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but you do not have access to publish this gallery.');
     }
@@ -89,7 +150,7 @@ app.post('/:user/:gallery/unpublish', function(req, res) {
     console.log('Got unpublish request for user ' + req.params.user + ' and gallery ' + req.params.gallery);
     if(req.session.user==user) {
         var gallery = req.params.gallery.toLowerCase();
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users_public', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -105,12 +166,12 @@ app.post('/:user/:gallery/unpublish', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-    					db.close();
+//    					db.close();
+                        res.send(200, {success:true});
     				});
-    				res.send(200, {success:true});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but you do not have access to manage these galleries.');
     }
@@ -124,7 +185,7 @@ app.post('/:user/:gallery/unpublish', function(req, res) {
 function processUpload(req, res) {
     
     function saveToDb() {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
             db.collection('users', function(err, collection) {
                 collection.findOne({
                     "user": req.params.user
@@ -133,7 +194,9 @@ function processUpload(req, res) {
                     var p = 0;
                     for (var i in gal) p += 1;
                     gal[p] = new Object();
-                    gal[p].source = config.storage.url + req.files.image.path.split('/').pop() + '.jpg';;
+                    // This is only when using Riak
+                    //gal[p].source = config.storage.url + req.files.image.path.split('/').pop() + '.jpg';
+                    gal[p].source = '/images/' + req.files.image.path.split('/').pop() + '.jpg';
                     gal[p].top = Math.floor(Math.random() * 701);
                     gal[p].left = Math.floor(Math.random() * 901);
                     gal[p].link = '';
@@ -148,75 +211,142 @@ function processUpload(req, res) {
                             upsert: true,
                             safe: true
                         }, function(err, document) {
-                            db.close();
+//                            db.close();
                             res.redirect('back');
                         });
                     });
                 });
             });
-        });
+//        });
     }
     // For tracking the parallel events
-    var parallel = 0;
-    
-    parallel += 1;
+    var parallel = 3;
+
     var mop = req.files.image.path.split('/').pop() + '-medium.jpg';
-    im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', mop], function(err) {
-    	if (err) throw err;
-        fs.readFile(mop, function (err, imageData) {
-            if (err) throw err;
-            request.post({
-                    headers: {'Content-Type': 'image/jpeg'},
-                    url: config.storage.url + mop.split('/').pop(),
-                    body: imageData
-                }, function(error, response, body) {
-                    parallel -= 1;
-                    if(parallel===0) saveToDb();
-            });
-        });
-	});
-    
-    parallel += 1;
-    var sop = req.files.image.path.split('/').pop() + '-small.jpg';
-    im.convert([req.files.image.path, '-quality', '80', '-resize', '400x400\>', sop], function(err) {
+//    im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', mop], function(err) {
+//    	if (err) throw err;
+//        fs.readFile(mop, function (err, imageData) {
+//            if (err) throw err;
+//            request.post({
+//                    headers: {'Content-Type': 'image/jpeg'},
+//                    url: config.storage.url + mop.split('/').pop(),
+//                    body: imageData
+//                }, function(error, response, body) {
+//                    parallel -= 1;
+//                    if(parallel===0) saveToDb();
+//            });
+//        });
+//	});
+
+    im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', __dirname + '/images/' + mop], function(err) {
         if (err) throw err;
-        fs.readFile(sop, function (err, imageData) {
+        fs.readFile(__dirname + '/images/' + mop, function(err, imageData) {
             if (err) throw err;
-            request.post({
-                    headers: {'Content-Type': 'image/jpeg'},
-                    url: config.storage.url + sop.split('/').pop(),
-                    body: imageData
-                }, function(error, response, body) {
+            db.collection('images', function(err, collection) {
+                var b64 = new Buffer(imageData).toString('base64');
+                b64 = b64;
+                collection.update({
+                    "name": mop
+                }, {
+                    "name": mop,
+                    "data": b64
+                }, {
+                    upsert: true,
+                    safe: true
+                }, function(err, document) {
                     parallel -= 1;
-                    if(parallel===0) saveToDb();
+                    if (parallel === 0) saveToDb();
+                });
             });
         });
-	});
-    
-    parallel += 1;
+    });
+
+    var sop = req.files.image.path.split('/').pop() + '-small.jpg';
+//    im.convert([req.files.image.path, '-quality', '80', '-resize', '400x400\>', sop], function(err) {
+//        if (err) throw err;
+//        fs.readFile(sop, function (err, imageData) {
+//            if (err) throw err;
+//            request.post({
+//                    headers: {'Content-Type': 'image/jpeg'},
+//                    url: config.storage.url + sop.split('/').pop(),
+//                    body: imageData
+//                }, function(error, response, body) {
+//                    parallel -= 1;
+//                    if(parallel===0) saveToDb();
+//            });
+//        });
+//	});
+
+    im.convert([req.files.image.path, '-quality', '80', '-resize', '400x400\>', __dirname + '/images/' + sop], function(err) {
+        if (err) throw err;
+        fs.readFile(__dirname + '/images/' + sop, function(err, imageData) {
+            if (err) throw err;
+            db.collection('images', function(err, collection) {
+                var b64 = new Buffer(imageData).toString('base64');
+                b64 = b64;
+                collection.update({
+                    "name": sop
+                }, {
+                    "name": sop,
+                    "data": b64
+                }, {
+                    upsert: true,
+                    safe: true
+                }, function(err, document) {
+                    parallel -= 1;
+                    if (parallel === 0) saveToDb();
+                });
+            });
+        });
+    });
+
     var lop = req.files.image.path.split('/').pop() + '-large.jpg';
-	im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', lop], function(err) {
-		if (err) throw err;
-        fs.readFile(lop, function (err, imageData) {
+//	im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', lop], function(err) {
+//		if (err) throw err;
+//        fs.readFile(lop, function (err, imageData) {
+//            if (err) throw err;
+//            request.post({
+//                    headers: {'Content-Type': 'image/jpeg'},
+//                    url: config.storage.url + lop.split('/').pop(),
+//                    body: imageData
+//                }, function(error, response, body) {
+//                    parallel -= 1;
+//                    if(parallel===0) saveToDb();
+//            });
+//        });
+//	});
+
+    im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', __dirname + '/images/' + lop], function(err) {
+        if (err) throw err;
+        fs.readFile(__dirname + '/images/' + lop, function(err, imageData) {
             if (err) throw err;
-            request.post({
-                    headers: {'Content-Type': 'image/jpeg'},
-                    url: config.storage.url + lop.split('/').pop(),
-                    body: imageData
-                }, function(error, response, body) {
+            db.collection('images', function(err, collection) {
+                var b64 = new Buffer(imageData).toString('base64');
+                b64 = b64;
+                collection.update({
+                    "name": lop
+                }, {
+                    "name": lop,
+                    "data": b64
+                }, {
+                    upsert: true,
+                    safe: true
+                }, function(err, document) {
                     parallel -= 1;
-                    if(parallel===0) saveToDb();
+                    if (parallel === 0) saveToDb();
+                });
             });
         });
-	});
+    });
+    
 }
 
 function processUploads(req, res, k) {
     // For tracking the parallel tasks
-    var parallel = 0;
+    var parallel = 3;
         
     function saveToDb() {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
             db.collection('users', function(err, collection) {
                 collection.findOne({
                     "user": req.params.user
@@ -225,7 +355,9 @@ function processUploads(req, res, k) {
                     var p = 0;
                     for (var i in gal) p += 1;
                     gal[p] = new Object();
-                    gal[p].source = config.storage.url + req.files.image[k].path.split('/').pop() + '.jpg';
+                    //Only for Riak use
+                    //gal[p].source = config.storage.url + req.files.image[k].path.split('/').pop() + '.jpg';
+                    gal[p].source = '/images/' + req.files.image[k].path.split('/').pop() + '.jpg';
                     gal[p].top = Math.floor(Math.random() * 701);
                     gal[p].left = Math.floor(Math.random() * 901);
                     gal[p].link = '';
@@ -240,68 +372,135 @@ function processUploads(req, res, k) {
                             upsert: true,
                             safe: true
                         }, function(err, document) {
-                            db.close();
+//                            db.close();
                             k += 1;
                             processUploads(req, res, k);
                         });
                     });
                 });
             });
-        });
+//        });
     }
     
 	if (req.files.image[k]) {
         
-        parallel += 1;
         var mop = req.files.image[k].path.split('/').pop() + '-medium.jpg';
-		im.convert([req.files.image[k].path, '-quality', '85', '-resize', '900x900\>', mop], function(err) {
-			if (err) throw err;
-            fs.readFile(mop, function (err, imageData) {
+//		im.convert([req.files.image[k].path, '-quality', '85', '-resize', '900x900\>', mop], function(err) {
+//			if (err) throw err;
+//            fs.readFile(mop, function (err, imageData) {
+//                if (err) throw err;
+//                request.post({
+//                        headers: {'Content-Type': 'image/jpeg'},
+//                        url: config.storage.url + mop.split('/').pop(),
+//                        body: imageData
+//                    }, function(error, response, body) {
+//                        parallel -= 1;
+//                        if(parallel===0) saveToDb();
+//                });
+//            });
+//		});
+
+        im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', __dirname + '/images/' + mop], function(err) {
+            if (err) throw err;
+            fs.readFile(__dirname + '/images/' + mop, function(err, imageData) {
                 if (err) throw err;
-                request.post({
-                        headers: {'Content-Type': 'image/jpeg'},
-                        url: config.storage.url + mop.split('/').pop(),
-                        body: imageData
-                    }, function(error, response, body) {
+                db.collection('images', function(err, collection) {
+                    var b64 = new Buffer(imageData).toString('base64');
+                    b64 = b64;
+                    collection.update({
+                        "name": mop
+                    }, {
+                        "name": mop,
+                        "data": b64
+                    }, {
+                        upsert: true,
+                        safe: true
+                    }, function(err, document) {
                         parallel -= 1;
-                        if(parallel===0) saveToDb();
+                        if (parallel === 0) saveToDb();
+                    });
                 });
             });
-		});
+        });
 	
-        parallel += 1;
         var sop = req.files.image[k].path.split('/').pop() + '-small.jpg';
-		im.convert([req.files.image[k].path, '-quality', '80', '-resize', '400x400\>', sop], function(err) {
-			if (err) throw err;
-            fs.readFile(sop, function (err, imageData) {
+//		im.convert([req.files.image[k].path, '-quality', '80', '-resize', '400x400\>', sop], function(err) {
+//			if (err) throw err;
+//            fs.readFile(sop, function (err, imageData) {
+//                if (err) throw err;
+//                request.post({
+//                        headers: {'Content-Type': 'image/jpeg'},
+//                        url: config.storage.url + sop.split('/').pop(),
+//                        body: imageData
+//                    }, function(error, response, body) {
+//                        parallel -= 1;
+//                        if(parallel===0) saveToDb();
+//                });
+//            });
+//		});
+
+        im.convert([req.files.image.path, '-quality', '80', '-resize', '400x400\>', __dirname + '/images/' + sop], function(err) {
+            if (err) throw err;
+            fs.readFile(__dirname + '/images/' + sop, function(err, imageData) {
                 if (err) throw err;
-                request.post({
-                        headers: {'Content-Type': 'image/jpeg'},
-                        url: config.storage.url + sop.split('/').pop(),
-                        body: imageData
-                    }, function(error, response, body) {
+                db.collection('images', function(err, collection) {
+                    var b64 = new Buffer(imageData).toString('base64');
+                    b64 = b64;
+                    collection.update({
+                        "name": sop
+                    }, {
+                        "name": sop,
+                        "data": b64
+                    }, {
+                        upsert: true,
+                        safe: true
+                    }, function(err, document) {
                         parallel -= 1;
-                        if(parallel===0) saveToDb();
+                        if (parallel === 0) saveToDb();
+                    });
                 });
             });
-		});
+        });
         
-        parallel += 1;
         var lop = req.files.image[k].path.split('/').pop() + '-large.jpg';
-		im.convert([req.files.image[k].path, '-quality', '85', '-resize', '1600x1600\>', lop], function(err) {
-			if (err) throw err;
-            fs.readFile(lop, function (err, imageData) {
+//		im.convert([req.files.image[k].path, '-quality', '85', '-resize', '1600x1600\>', lop], function(err) {
+//			if (err) throw err;
+//            fs.readFile(lop, function (err, imageData) {
+//                if (err) throw err;
+//                request.post({
+//                        headers: {'Content-Type': 'image/jpeg'},
+//                        url: config.storage.url + lop.split('/').pop(),
+//                        body: imageData
+//                    }, function(error, response, body) {
+//                        parallel -= 1;
+//                        if(parallel===0) saveToDb();
+//                });
+//            });
+//		});
+
+        im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', __dirname + '/images/' + lop], function(err) {
+            if (err) throw err;
+            fs.readFile(__dirname + '/images/' + lop, function(err, imageData) {
                 if (err) throw err;
-                request.post({
-                        headers: {'Content-Type': 'image/jpeg'},
-                        url: config.storage.url + lop.split('/').pop(),
-                        body: imageData
-                    }, function(error, response, body) {
+                db.collection('images', function(err, collection) {
+                    var b64 = new Buffer(imageData).toString('base64');
+                    b64 = b64;
+                    collection.update({
+                        "name": lop
+                    }, {
+                        "name": lop,
+                        "data": b64
+                    }, {
+                        upsert: true,
+                        safe: true
+                    }, function(err, document) {
                         parallel -= 1;
-                        if(parallel===0) saveToDb();
+                        if (parallel === 0) saveToDb();
+                    });
                 });
             });
-		});
+        });
+    
 	}
 	else {
 		if(parallel===0) res.redirect('back');
@@ -332,12 +531,27 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
                 if (err) throw err;
                 fs.readFile(mop, function (err, imageData) {
                     if (err) throw err;
-                    request.post({
-                            headers: {'Content-Type': 'image/png'},
-                            url: config.storage.url + mop.split('/').pop(),
-                            body: imageData
-                        }, function(error, response, body) {
+//                    request.post({
+//                            headers: {'Content-Type': 'image/png'},
+//                            url: config.storage.url + mop.split('/').pop(),
+//                            body: imageData
+//                        }, function(error, response, body) {
+//                            
+//                    });
+                    db.collection('images', function(err, collection) {
+                        var b64 = new Buffer(imageData).toString('base64');
+                        b64 = b64;
+                        collection.update({
+                            "name": mop
+                        }, {
+                            "name": mop,
+                            "data": b64
+                        }, {
+                            upsert: true,
+                            safe: true
+                        }, function(err, document) {
                             
+                        });
                     });
                 });
             });
@@ -347,12 +561,27 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
                 if (err) throw err;
                 fs.readFile(lop, function (err, imageData) {
                     if (err) throw err;
-                    request.post({
-                            headers: {'Content-Type': 'image/png'},
-                            url: config.storage.url + lop.split('/').pop(),
-                            body: imageData
-                        }, function(error, response, body) {
+//                    request.post({
+//                            headers: {'Content-Type': 'image/png'},
+//                            url: config.storage.url + lop.split('/').pop(),
+//                            body: imageData
+//                        }, function(error, response, body) {
+//                            
+//                    });
+                    db.collection('images', function(err, collection) {
+                        var b64 = new Buffer(imageData).toString('base64');
+                        b64 = b64;
+                        collection.update({
+                            "name": lop
+                        }, {
+                            "name": lop,
+                            "data": b64
+                        }, {
+                            upsert: true,
+                            safe: true
+                        }, function(err, document) {
                             
+                        });
                     });
                 });
         	});
@@ -362,12 +591,24 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
         		if (err) throw err;
                 fs.readFile(sop, function (err, imageData) {
                     if (err) throw err;
-                    request.post({
-                            headers: {'Content-Type': 'image/png'},
-                            url: config.storage.url + sop.split('/').pop(),
-                            body: imageData
-                        }, function(error, response, body) {
-                        	db.open(function(err, db) {
+//                    request.post({
+//                            headers: {'Content-Type': 'image/png'},
+//                            url: config.storage.url + sop.split('/').pop(),
+//                            body: imageData
+//                        }, function(error, response, body) {
+                    db.collection('images', function(err, collection) {
+                        var b64 = new Buffer(imageData).toString('base64');
+                        b64 = b64;
+                        collection.update({
+                            "name": sop
+                        }, {
+                            "name": sop,
+                            "data": b64
+                        }, {
+                            upsert: true,
+                            safe: true
+                        }, function(err, document) {
+//                        	db.open(function(err, db) {
                     			db.collection('users', function(err, collection) {
                     				collection.findOne({
                     					"user": req.params.user
@@ -376,7 +617,9 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
                     					var p = 0;
                     					for (var i in gal) p += 1;
                     					gal[p] = new Object();
-                    					gal[p].source = config.storage.url + path.split('/').pop();
+                                        // Only for Riak
+                    					//gal[p].source = config.storage.url + path.split('/').pop();
+                                        gal[p].source = '/images/' + path.split('/').pop();
                     					gal[p].top = Math.floor(Math.random() * 701);
                     					gal[p].left = Math.floor(Math.random() * 901);
                     					gal[p].link = '';
@@ -391,14 +634,17 @@ app.post('/:user/:gallery/photos/drawn/uploadDrawnImage', function(req, res) {
                     							upsert: true,
                     							safe: true
                     						}, function(err, document) {
-                    							db.close();
+//                    							db.close();
                     							res.redirect('back');
                     						});
                     					});
                     				});
                     			});
-                    		});
-                    });
+                                
+                            });
+                        });
+//                    		});
+//                    });
                 });
         	});
         });
@@ -417,13 +663,29 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
             res.send(200, {success:true});
             fs.readFile(p, function (err, imageData) {
                 if (err) throw err;
-                request.post({
-                        headers: {'Content-Type': 'image/png'},
-                        url: config.storage.url + p.split('/').pop(),
-                        body: imageData
-                    }, function(error, response, body) {
-                        
-                });
+//                request.post({
+//                        headers: {'Content-Type': 'image/png'},
+//                        url: config.storage.url + p.split('/').pop(),
+//                        body: imageData
+//                    }, function(error, response, body) {
+//                        
+//                });
+
+                    db.collection('images', function(err, collection) {
+                        var b64 = new Buffer(imageData).toString('base64');
+                        b64 = b64;
+                        collection.update({
+                            "name": p.split('/').pop()
+                        }, {
+                            "name": p.split('/').pop(),
+                            "data": b64
+                        }, {
+                            upsert: true,
+                            safe: true
+                        }, function(err, document) {
+                            
+                        });
+                    });
             });
         });
     } else {
@@ -482,7 +744,7 @@ app.post('/:user/:gallery/uploadBackground', function(req, res, next) {
 //});
 
 app.get('/home/users', function(req, res) {
-    db.open(function(err, db) {
+//    db.open(function(err, db) {
         db.collection('users_public', function(err, collection) {
             var users = new Array();
             collection.find().toArray(function(err, document) {
@@ -502,15 +764,19 @@ app.get('/home/users', function(req, res) {
                         loggedin: loggedin
                     }
                 });
-                db.close();
+//                db.close();
             });
         });
-    });
+//    });
+});
+
+app.get('/favicon.ico', function(req, res) {
+    res.send(200);
 });
 
 app.get('/:user', function(req, res) {
     if (req.session.user == req.params.user.toLowerCase()) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
             db.collection('users', function(err, collection) {
                 var users = new Array();
                 collection.find().toArray(function(err, document) {
@@ -532,12 +798,12 @@ app.get('/:user', function(req, res) {
         					}
         				});
         			} else res.send('User does not exist!');
-        		db.close();
+//        		db.close();
     			});
     		});
-    	});
+//    	});
     } else {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
             db.collection('users_public', function(err, collection) {
                 var users = new Array();
                 collection.find().toArray(function(err, document) {
@@ -559,10 +825,10 @@ app.get('/:user', function(req, res) {
         					}
         				});
         			} else res.send('User does not exist!');
-        		db.close();
+//        		db.close();
     			});
     		});
-    	});
+//    	});
     }
 });
 
@@ -651,7 +917,7 @@ app.get('/:user/:gallery', function(req, res) {
     if (req.session.user == user) {
         var loggedin = false;
         if(req.session.user) loggedin = true;
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -672,12 +938,12 @@ app.get('/:user/:gallery', function(req, res) {
     					else res.send('Gallery does not exist!');
     				}
     				else res.send('User does not exist!');
-    				db.close();
+//    				db.close();
     			});
     		});
-    	});
+//    	});
     } else {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
         	db.collection('users_public', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -697,10 +963,10 @@ app.get('/:user/:gallery', function(req, res) {
     					else res.send('Gallery does not exist!');
     				}
     				else res.send('User does not exist!');
-    				db.close();
+//    				db.close();
     			});
     		});
-    	});
+//    	});
     }
 });
 
@@ -708,7 +974,7 @@ app.post('/:user/:gallery/upsert', function(req, res) {
     console.log('Coords update');
     var user = req.params.user.toLowerCase();
     if(req.session.user==user) {
-    	db.open(function(err, db) {
+//    	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -736,12 +1002,12 @@ app.post('/:user/:gallery/upsert', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-    					db.close();
+//    					db.close();
     				});
     				res.send(200, {success:true});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but you do not have access to update coordinates for this gallery.');
     }
@@ -752,7 +1018,7 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
     console.log(req.body.link);
     var user = req.params.user.toLowerCase();
     if((req.session.user==user) && (req.body.link!='null')) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -775,12 +1041,12 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-    					db.close();
+//    					db.close();
     				});
     				res.redirect('back');
     			});
     		});
-    	});
+//    	});
     } else {
         res.redirect('back');
     }
@@ -790,7 +1056,7 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
     console.log('delete photo ' + req.body.file + ' by ' + req.params.user + ' from gallery ' + req.params.gallery);
     var user = req.params.user.toLowerCase();
     if(req.session.user==user) {
-    	db.open(function(err, db) {
+//    	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -829,12 +1095,12 @@ app.post('/:user/:gallery/photos/delete', function(req, res) {
     					upsert: true,
     					safe: true
     				}, function(err, document) {
-    					db.close();
+//    					db.close();
     				});
     				res.redirect('back');
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but you do not have access to delete photos from this gallery.');
     }
@@ -844,7 +1110,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
     var user = req.session.user.toLowerCase();
     if(req.session.user==user) {
         var gallery = req.params.gallery.toLowerCase();
-    	db.open(function(err, db) {
+//    	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -875,7 +1141,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
                     				upsert: true,
                     				safe: true
                     			}, function(err, document) {
-                    				db.close();
+//                    				db.close();
                     			});
                     			res.send(200, {success:true});
                     		});
@@ -883,7 +1149,7 @@ app.get('/:user/:gallery/delete', function(req, res) {
     				});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but it looks like you are not logged in.');
     }
@@ -918,7 +1184,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
     console.log('delete user ' + req.params.user);
     var user = req.params.user.toLowerCase();
     if(req.session.user==user) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -933,7 +1199,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
                 				collection.remove({
                     				"user": user
                 				}, function(err, document) {
-                                	db.close();
+//                                	db.close();
                                     res.send(200, {success:true});
                 				});
                 			});
@@ -941,7 +1207,7 @@ app.get('/users/list/account/delete/:user', function(req, res) {
     				});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but you do not have access to delete this user account.');
     }
@@ -951,7 +1217,7 @@ app.post('/:user/galleries/new', function(req, res) {
     console.log('new gallery');
     var gallery = req.body.gallery.toLowerCase();
     if(req.session.user) {
-    	db.open(function(err, db) {
+//    	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": req.session.user
@@ -960,16 +1226,29 @@ app.post('/:user/galleries/new', function(req, res) {
     					var data = 'iVBORw0KGgoAAAANSUhEUgAABp0AAAQfCAYAAADhpCFVAABAAElEQVR4AezZsQ0AIAwEMWCl7D8bSKxwrelJYX13e2bu8ggQIECAAAECBAgQIECAAAECBAgQIECAAAECBAgEgRP++kqAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEDgC4hOhkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zovolSXwAAQABJREFUAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgAABAgQIECBAgAABAgQIECCQBUSnTOgAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6GQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECWUB0yoQOECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIiE42QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgkAVEp0zoAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAgOhkAwQIECBAgAABAgQIECBAgAABAgQIECBAgAABAllAdMqEDhAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhONkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQIJAFRKdM6AABAgQIECBAgAABAgQIECBAgAABAgQIECBAgIDoZAMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQJZQHTKhA4QIECAAAECBAgQIECAAAECBAgQIECAAAECBAiITjZAgAABAgQIECBAgACB154d0gAAADAM8+96IkZr4KA5GwECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAATKI1iAAAALxSURBVAIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AKi0yY0QIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgIDr5AAECBAgQIECAAAECBAgQIECAAAECBAgQIECAwBYQnTahAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAdHJBwgQIECAAAECBAgQIECAAAECBAgQIECAAAECBLaA6LQJDRAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECIhOPkCAAAECBAgQIECAAAECBAgQIECAAAECBAgQILAFRKdNaIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQEB08gECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIEtIDptQgMECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQKikw8QIECAAAECBAgQIECAAAECBAgQIECAAAECBAhsAdFpExogQIAAAQIECBAgQIAAAQIECBAgQIAAAQIECBAQnXyAAAECBAgQIECAAAECBAgQIECAAAECBAgQIEBgC4hOm9AAAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQICA6OQDBAgQIECAAAECBAgQIECAAAECBAgQIECAAAECW0B02oQGCBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIERCcfIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQ2AIBO78J1qeCFMMAAAAASUVORK5CYII=';
     					var buf = new Buffer(data, 'base64');
                         var p = __dirname + '/images/' + req.params.user + '-' + gallery + '-bg.png';
-    					fs.writeFile(p, buf, null, function(err) {
-                            fs.readFile(p, function (err, imageData) {
-                                if (err) throw err;
-                                request.post({
-                                        headers: {'Content-Type': 'image/png'},
-                                        url: config.storage.url + p.split('/').pop(),
-                                        body: imageData
-                                    }, function(error, response, body) {	
-					
-                                });
+//    					fs.writeFile(p, buf, null, function(err) {
+//                            fs.readFile(p, function (err, imageData) {
+//                                if (err) throw err;
+//                                request.post({
+//                                        headers: {'Content-Type': 'image/png'},
+//                                        url: config.storage.url + p.split('/').pop(),
+//                                        body: imageData
+//                                    }, function(error, response, body) {	
+//					
+//                                });
+//                            });
+//                        });
+                        db.collection('images', function(err, collection) {
+                            collection.update({
+                                "name": p.split('/').pop()
+                            }, {
+                                "name": p.split('/').pop(),
+                                "data": data
+                            }, {
+                                upsert: true,
+                                safe: true
+                            }, function(err, document) {
+                                
                             });
                         });
     					var gal = new Object();
@@ -980,13 +1259,13 @@ app.post('/:user/galleries/new', function(req, res) {
     						upsert: true,
     						safe: true
     					}, function(err, document) {
-    						db.close();
+//    						db.close();
     					});
     				}
     				res.send(200, {success:true});
     			});
     		});
-    	});
+//    	});
     } else {
         res.send(400, 'Sorry, but it appears you are not logged in.');
     }
@@ -995,7 +1274,7 @@ app.post('/:user/galleries/new', function(req, res) {
 app.post('/users/list/new', function(req, res) {
     console.log('New user ' + req.body.user);
     var user = req.body.user.toLowerCase();
-	db.open(function(err, db) {
+//	db.open(function(err, db) {
 		db.collection('users', function(err, collection) {
 			collection.findOne({
 				"user": user
@@ -1030,7 +1309,7 @@ app.post('/users/list/new', function(req, res) {
                 					}, function(err, document) {
                                         req.session.user = user;
                                         //req.session.password = req.body.password;
-                						db.close();
+//                						db.close();
                                         res.send(200, {success:true});
                 					});
                 				} else {
@@ -1044,7 +1323,7 @@ app.post('/users/list/new', function(req, res) {
 				}
 			});
 		});
-	});
+//	});
     //Send e-mail to admin
     // create reusable transport method (opens pool of SMTP connections)
     var smtpTransport = nodemailer.createTransport("SMTP",{
@@ -1077,26 +1356,30 @@ app.post('/users/list/login', function(req, res) {
     console.log('Login by ' + req.body.user);
     var user = req.body.user.toLowerCase();
     if(user.length>0) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
     			}, function(err, document) {
-    				if(document.password == crypto.createHash('md5').update(req.body.password).digest("hex")) {
-                        req.session.user = user;
-                        //req.session.password = req.body.password;
-                        if(req.body.form) res.redirect('back');
-    	                else res.send(200, {success:true});
-                        console.log('Correct Password');
-    				} else {
-                        console.log('Wrong Password');
-                        if(req.body.form) res.redirect('back');
-                        else res.send(400, 'Wrong password!');
-    				}
-    				db.close();
+                    if(document) {
+        				if(document.password == crypto.createHash('md5').update(req.body.password).digest("hex")) {
+                            req.session.user = user;
+                            //req.session.password = req.body.password;
+                            if(req.body.form) res.redirect('back');
+        	                else res.send(200, {success:true});
+                            console.log('Correct Password');
+        				} else {
+                            console.log('Wrong Password');
+                            if(req.body.form) res.redirect('back');
+                            else res.send(400, 'Wrong password!');
+        				}
+    //    				db.close();
+                    } else {
+                        res.redirect('back');
+                    }
     			});
     		});
-    	});
+//    	});
     }
 });
 
@@ -1104,7 +1387,7 @@ app.post('/users/list/password', function(req, res) {
     console.log('Password change by ' + req.body.user);
     var user = req.body.user.toLowerCase();
     if(user.length>0) {
-        db.open(function(err, db) {
+//        db.open(function(err, db) {
         	db.collection('users', function(err, collection) {
     			collection.findOne({
     				"user": user
@@ -1121,7 +1404,7 @@ app.post('/users/list/password', function(req, res) {
                                 req.session.user = user;
                                 res.send(200);
                                 //req.session.password = req.body.password;
-                    			db.close();
+//                    			db.close();
                 		});
     				} else {
                         console.log('Wrong Password');
@@ -1130,7 +1413,7 @@ app.post('/users/list/password', function(req, res) {
     				//db.close();
     			});
     		});
-    	});
+//    	});
     }
 });
 
