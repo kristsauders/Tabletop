@@ -292,11 +292,12 @@ function showDelete() {
     	element.setAttribute("type","button");
     	element.setAttribute("value","x");
     	element.setAttribute("onclick","javascript:deleteImage(this)");
+        element.setAttribute("class", "btn btn-large btn-danger");
     	element.onclick = function() {deleteImage(this);};
     	element.style.position = 'absolute';
     	element.style.left = '0px';
     	element.style.top = '0px';
-        element.setAttribute("class", 'delX');
+        //element.setAttribute("class", 'delX');
     	x[i].parentNode.appendChild(element);
 	}
     setTimeout(function(){ hideDelete(); }, 6000);
@@ -518,44 +519,43 @@ function submitSignup(user, email, password) {
     }
 }
 function signup() {
-    $("\
-        <form id='login' align='center'>\
-            <fieldset>\
-                <label for='name'>Username</label>\
-                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
-                <label for='email'>Email</label>\
-                <input type='text' name='email' id='email' class='text ui-widget-content ui-corner-all' /><br/>\
-                <label for='password'>Password</label>\
-                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
-                <input type='submit' style='visibility:hidden;' />\
-            </fieldset>\
-        </form>\
-    ").dialog({
-        title: "Sign Up",
-        modal:true,
-    	height:350,
-    	width:600,
-    	buttons: {
-    		"Sign Up": function() {
-    			submitSignup($("#name").val(), $("#email").val(), $("#password").val());
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    		Cancel: function() {
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    	},
-    	close: function() {
-    		$(this).dialog( "destroy" );
-    		$(this).remove();
-    	}
-    });
+//    $("\
+//        <form id='login' align='center'>\
+//            <fieldset>\
+//                <label for='name'>Username</label>\
+//                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+//                <label for='email'>Email</label>\
+//                <input type='text' name='email' id='email' class='text ui-widget-content ui-corner-all' /><br/>\
+//                <label for='password'>Password</label>\
+//                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
+//                <input type='submit' style='visibility:hidden;' />\
+//            </fieldset>\
+//        </form>\
+//    ").dialog({
+//        title: "Sign Up",
+//        modal:true,
+//    	height:350,
+//    	width:600,
+//    	buttons: {
+//    		"Sign Up": function() {
+//    			submitSignup($("#name").val(), $("#email").val(), $("#password").val());
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    		Cancel: function() {
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    	},
+//    	close: function() {
+//    		$(this).dialog( "destroy" );
+//    		$(this).remove();
+//    	}
+//    });
+    $('#signupmodal').reveal();
     $("#login").submit(function(e){
     	e.preventDefault();
     	submitSignup($("#name").val(), $("#email").val(), $("#password").val());
-    	$(this).dialog( "destroy" );
-    	$(this).remove();
     });
 }
 function deleteUserSuccess() {
@@ -642,40 +642,39 @@ function submitNewGallery(gallery) {
     }
 }
 function newGallery() {
-    $("\
-        <form id='login' align='center'>\
-            <fieldset>\
-                <label for='name'>Gallery Title</label>\
-                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
-                <input type='submit' style='visibility:hidden;' />\
-            </fieldset>\
-        </form>\
-    ").dialog({
-        title: "Create Gallery",
-        modal:true,
-        height:200,
-        width:600,
-    	buttons: {
-    		"Create Gallery": function() {
-    			submitNewGallery($("#gallery").val());
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    		Cancel: function() {
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    	},
-    	close: function() {
-    		$(this).dialog( "destroy" );
-    		$(this).remove();
-    	}
-    });
-    $("#login").submit(function(e){
+//    $("\
+//        <form id='login' align='center'>\
+//            <fieldset>\
+//                <label for='name'>Gallery Title</label>\
+//                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
+//                <input type='submit' style='visibility:hidden;' />\
+//            </fieldset>\
+//        </form>\
+//    ").dialog({
+//        title: "Create Gallery",
+//        modal:true,
+//        height:200,
+//        width:600,
+//    	buttons: {
+//    		"Create Gallery": function() {
+//    			submitNewGallery($("#gallery").val());
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    		Cancel: function() {
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    	},
+//    	close: function() {
+//    		$(this).dialog( "destroy" );
+//    		$(this).remove();
+//    	}
+//    });
+    $('#newgallerymodal').reveal();
+    $("#newgallery").submit(function(e){
     	e.preventDefault();
-    	submitNewGallery($("#gallery").val());
-    	$(this).dialog( "destroy" );
-    	$(this).remove();
+    	submitNewGallery($("#newgalleryname").val());
     });
 }
 function deleteGallerySuccess(user) {
@@ -697,40 +696,39 @@ function submitDeleteGallery(gallery) {
     }
 }
 function deleteGallery() {
-    $("\
-        <form id='login' align='center'>\
-            <fieldset>\
-                <label for='name'>Gallery Title</label>\
-                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
-                <input type='submit' style='visibility:hidden;' />\
-            </fieldset>\
-        </form>\
-    ").dialog({
-        title: "Delete Gallery",
-        modal:true,
-        height:200,
-        width:600,
-        buttons: {
-    		"Delete Gallery": function() {
-    			submitDeleteGallery($("#gallery").val());
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    		Cancel: function() {
-    			$(this).dialog( "destroy" );
-    			$(this).remove();
-    		},
-    	},
-    	close: function() {
-    		$(this).dialog( "destroy" );
-    		$(this).remove();
-    	}
-    });
-    $("#login").submit(function(e){
+//    $("\
+//        <form id='login' align='center'>\
+//            <fieldset>\
+//                <label for='name'>Gallery Title</label>\
+//                <input type='text' name='gallery' id='gallery' class='text ui-widget-content ui-corner-all' /><br/>\
+//                <input type='submit' style='visibility:hidden;' />\
+//            </fieldset>\
+//        </form>\
+//    ").dialog({
+//        title: "Delete Gallery",
+//        modal:true,
+//        height:200,
+//        width:600,
+//        buttons: {
+//    		"Delete Gallery": function() {
+//    			submitDeleteGallery($("#gallery").val());
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    		Cancel: function() {
+//    			$(this).dialog( "destroy" );
+//    			$(this).remove();
+//    		},
+//    	},
+//    	close: function() {
+//    		$(this).dialog( "destroy" );
+//    		$(this).remove();
+//    	}
+//    });
+    $('#deletegallerymodal').reveal();
+    $("#deletegallery").submit(function(e){
     	e.preventDefault();
-    	submitDeleteGallery($("#gallery").val());
-    	$(this).dialog( "destroy" );
-    	$(this).remove();
+    	submitDeleteGallery($("#deletegalleryname").val());
     });
 }
 function publishGallerySuccess() {
@@ -791,6 +789,20 @@ $(document).ready(function(){
     // Attach JQuery.click() functions to buttons
     $("#signup").click(function() {
         signup();
+    });
+    // clear input on focus
+    var clearMePrevious = '';
+    $('input').focus(function() {
+        if ($(this).val() == $(this).attr('title')) {
+            clearMePrevious = $(this).val();
+            $(this).val('');
+        }
+    });
+    // if field is empty afterward, add text again
+    $('input').blur(function() {
+        if ($(this).val() == '') {
+            $(this).val(clearMePrevious);
+        }
     });
 });
 // Functions for using a private riak key/value data storage for persistence

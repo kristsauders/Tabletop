@@ -1201,6 +1201,8 @@ app.get('/users/list/account/delete/:user', function(req, res) {
                     				"user": user
                 				}, function(err, document) {
 //                                	db.close();
+                                    req.session.user = '';
+                                    req.session.password = '';
                                     res.send(200, {success:true});
                 				});
                 			});
