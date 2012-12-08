@@ -7,7 +7,6 @@ config.app = {};
 config.storage = {};
 
 config.db.url = '127.0.0.1';
-//config.db.url = 'mongodb://af_Tabletop-kristsauders:ajsuekibvhopn3kl56ir43jjp@ds045147.mongolab.com:45147/af_Tabletop-kristsauders';
 config.db.prt = 27017;
 config.db.name = 'tabletop';
 config.db.username = '';

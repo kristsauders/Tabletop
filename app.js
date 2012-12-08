@@ -15,6 +15,7 @@ var express = require('express'),
 
 if(process.env.MONGOLAB_URI) {
     console.log('Found MongoLab URI environment variable, using its settings.');
+    console.log('MongoLab URI: ' + process.env.MONGOLAB_URI);
     var mu = process.env.MONGOLAB_URI;
     config.db.url = mu.split(':')[2].split('@')[1];
     config.db.prt = parseInt(mu.split(':')[3].split('/')[0]);
@@ -400,7 +401,7 @@ function processUploads(req, res, k) {
 //            });
 //		});
 
-        im.convert([req.files.image.path, '-quality', '85', '-resize', '900x900\>', __dirname + '/images/' + mop], function(err) {
+        im.convert([req.files.image[k].path, '-quality', '85', '-resize', '900x900\>', __dirname + '/images/' + mop], function(err) {
             if (err) throw err;
             fs.readFile(__dirname + '/images/' + mop, function(err, imageData) {
                 if (err) throw err;
@@ -439,7 +440,7 @@ function processUploads(req, res, k) {
 //            });
 //		});
 
-        im.convert([req.files.image.path, '-quality', '80', '-resize', '400x400\>', __dirname + '/images/' + sop], function(err) {
+        im.convert([req.files.image[k].path, '-quality', '80', '-resize', '400x400\>', __dirname + '/images/' + sop], function(err) {
             if (err) throw err;
             fs.readFile(__dirname + '/images/' + sop, function(err, imageData) {
                 if (err) throw err;
@@ -478,7 +479,7 @@ function processUploads(req, res, k) {
 //            });
 //		});
 
-        im.convert([req.files.image.path, '-quality', '85', '-resize', '1600x1600\>', __dirname + '/images/' + lop], function(err) {
+        im.convert([req.files.image[k].path, '-quality', '85', '-resize', '1600x1600\>', __dirname + '/images/' + lop], function(err) {
             if (err) throw err;
             fs.readFile(__dirname + '/images/' + lop, function(err, imageData) {
                 if (err) throw err;
@@ -1326,11 +1327,12 @@ app.post('/users/list/new', function(req, res) {
 //	});
     //Send e-mail to admin
     // create reusable transport method (opens pool of SMTP connections)
+    var epwd = process.env.EMAIL_PWD || config.email.password;
     var smtpTransport = nodemailer.createTransport("SMTP",{
         service: "Gmail",
         auth: {
             user: config.email.username,
-            pass: config.email.password
+            pass: epwd
         }
     });
     // setup e-mail data with unicode symbols
