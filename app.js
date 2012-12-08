@@ -1056,7 +1056,7 @@ app.post('/:user/:gallery/updateLink', function(req, res) {
 app.post('/:user/:gallery/photos/delete', function(req, res) {
     console.log('delete photo ' + req.body.file + ' by ' + req.params.user + ' from gallery ' + req.params.gallery);
     var user = req.params.user.toLowerCase();
-    if(req.session.user==user) {
+    if(req.session.user===user) {
 //    	db.open(function(err, db) {
     		db.collection('users', function(err, collection) {
     			collection.findOne({

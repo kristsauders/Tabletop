@@ -580,12 +580,12 @@ function submitDeleteAccount(user, password) {
 }
 function deleteAccount() {
     $("\
-        <form id='login' align='center'>\
+        <form id='deleteaccountsubmit' align='center'>\
             <fieldset>\
                 <label for='name'>Username</label>\
-                <input type='text' name='name' id='name' class='text ui-widget-content ui-corner-all' /><br/>\
+                <input type='text' name='deleteaccountname' id='deleteaccountname' class='text ui-widget-content ui-corner-all' /><br/>\
                 <label for='password'>Password</label>\
-                <input type='password' name='password' id='password' value='' class='text ui-widget-content ui-corner-all' /><br/>\
+                <input type='password' name='deleteaccountpassword' id='deleteaccountpassword' value='' class='text ui-widget-content ui-corner-all' /><br/>\
                 <input type='submit' style='visibility:hidden;' />\
             </fieldset>\
         </form>\
@@ -610,9 +610,9 @@ function deleteAccount() {
     		$(this).remove();
     	}
     });
-    $("#login").submit(function(e){
+    $("#deleteaccountsubmit").submit(function(e){
     	e.preventDefault();
-    	submitDeleteAccount($("#name").val(), $("#password").val());
+    	submitDeleteAccount($("#deleteaccountname").val(), $("#deleteaccountpassword").val());
     	$(this).dialog( "destroy" );
     	$(this).remove();
     });

@@ -150,7 +150,7 @@
                                     </ul>
                                 </li>
                                 <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manage Account<b class="caret"></b></a>
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="#" onclick="changePassword();">Change Password</a></li>
                                         <li><a href="#" onclick="deleteAccount();">Delete Your Account</a></li>
@@ -223,7 +223,7 @@
         
         <div class="reveal-modal" id="deletegallerymodal">
             <form id='deletegallery' align='center'>
-                <input class="field span3 input" title="Gallery Title" value="Gallery Title" type="text" name="deletegalleryname" id="deletegalleryname" onkeydown="if (event.keyCode == 13){event.preventDefault();  $('#newgallerysubmit').click()}"/><br/>
+                <input class="field span3 input" title="Gallery Title" value="Gallery Title" type="text" name="deletegalleryname" id="deletegalleryname" onkeydown="if (event.keyCode == 13){event.preventDefault();  $('#deletegallerysubmit').click()}"/><br/>
                 <input onclick="$('#newgallerymodal').trigger('reveal:close');" class="span1 btn btn-large btn-danger" value="Cancel"/>
                 <input type='submit' id="deletegallerysubmit" class="span2 btn btn-large btn-success" value="Delete Gallery"/>
             </form>
