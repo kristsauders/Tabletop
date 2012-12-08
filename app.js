@@ -504,7 +504,7 @@ function processUploads(req, res, k) {
     
 	}
 	else {
-		if(parallel===0) res.redirect('back');
+		res.redirect('back');
 	}
 }
 
